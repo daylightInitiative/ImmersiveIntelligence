@@ -9,16 +9,15 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import pl.pabilo8.immersiveintelligence.ImmersiveIntelligence;
+import pl.pabilo8.immersiveintelligence.api.data.DataOperations;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.IIDataOperationUtils;
-import pl.pabilo8.immersiveintelligence.api.data.IIDataTypeUtils;
 import pl.pabilo8.immersiveintelligence.api.data.operations.DataOperation;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeAccessor;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeExpression;
-import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
-import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType.IGenericDataType;
-import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDataLetterList;
-import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDataLetterList.ArrowsAlignment;
+import pl.pabilo8.immersiveintelligence.api.data.types.IDataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.IDataType.IGenericDataType;
+import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDataLetterListSide;
+import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDataLetterListSide.ArrowsAlignment;
 import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDropdownList;
 import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonII;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
@@ -44,12 +43,12 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 {
 	int page = 0;
 	@Nullable
-	private GuiDataEditor<? extends DataType> pageEditor;
+	private GuiDataEditor<? extends IDataType> pageEditor;
 	@Nonnull
 	private final List<String> operations;
 
 	private GuiButtonDropdownList dropdownOperationPicker;
-	private GuiButtonDataLetterList dropdownLetterPicker;
+	private GuiButtonDataLetterListSide dropdownLetterPicker;
 
 	private GuiButtonIE buttonPagePrev, buttonPageNext, buttonPageNumber, buttonUseAccessor, buttonSwitchType;
 	private GuiButtonIE buttonTypePrev, buttonTypeNext;
@@ -88,11 +87,11 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 		if(page==0)
 		{
 			//add the lower-placed buttons first, so rendering (lack of) order is happy
-			dropdownLetterPicker = addButton(new GuiButtonDataLetterList(buttonList.size(), x+2, y+2+24+14, true, dataType.getRequiredVariable(), ArrowsAlignment.RIGHT));
+			dropdownLetterPicker = addButton(new GuiButtonDataLetterListSide(buttonList.size(), x+2, y+2+24+14, true, dataType.getRequiredVariable(), ArrowsAlignment.RIGHT));
 
 			dropdownOperationPicker = addButton(new GuiButtonDropdownList(buttonList.size(), x+2, y+14, width-4, 20, 4, operations.toArray(new String[0])))
 					.setTranslationFunc(s -> I18n.format(IIReference.DATA_KEY+"function."+s));
-			dropdownOperationPicker.selectedEntry = operations.indexOf(dataType.getMeta().name());
+			dropdownOperationPicker.selectedEntry = operations.indexOf(dataType.getOperation().name);
 			dropdownOperationPicker.enabled = !operations.isEmpty();
 		}
 		else
@@ -101,9 +100,9 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 					ImmersiveIntelligence.MODID+":textures/gui/emplacement_icons.png", 144, 89)
 					.setHoverOffset(12, 0));
 
-			Class<? extends DataType> currentType = dataType.getMeta().allowedTypes()[page-1];
-			DataType edited = dataType.getArgument(page-1);
-			if(edited instanceof DataTypeExpression) //In case someone really does that: don't
+			Class<? extends IDataType> currentType = dataType.getOperation().allowedTypes[page-1];
+			IDataType edited = dataType.getArgument(page-1);
+			if(edited instanceof GuiDataEditorExpression) //In case someone really does that: don't
 				IILogger.info("Stop doing what you're doing right now! Have some mercy for the bandwidth!");
 			else
 			{
@@ -114,12 +113,14 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 				}
 				else
 				{
-					for(Entry<Class<? extends DataType>, BiFunction<Integer, DataType, GuiDataEditor<? extends DataType>>> entry : GuiDataEditor.editors.entrySet())
+					for(Entry<Class<? extends IDataType>, BiFunction<Integer, IDataType, GuiDataEditor<? extends IDataType>>> entry : GuiDataEditor.editors.entrySet())
+					{
 						if(entry.getKey()==edited.getClass())
 						{
 							this.pageEditor = addButton(entry.getValue().apply(buttonList.size(), edited));
 							break;
 						}
+					}
 					if(pageEditor==null)
 					{
 						this.pageEditor = addButton(new GuiDataEditorAccessor(buttonList.size(),
@@ -131,11 +132,11 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 				if(pageEditor!=null)
 				{
 					this.pageEditor.setBounds(x, y+12, width, height-12);
-					DataType display = new DataPacket().getVarInType(currentType, dataType.data[page-1]);
-					paramColor = display.getTypeColor();
+					IDataType display = new DataPacket().getVarInType(currentType, dataType.data[page-1]);
+					paramColor = display.getTypeColour();
 					ResourceLocation paramIcon = new ResourceLocation(ImmersiveIntelligence.MODID, String.format("textures/gui/data_types/%s.png", display.getName()));
 
-					hasTypeSwitch = currentType==DataType.class||currentType.isAnnotationPresent(IGenericDataType.class);
+					hasTypeSwitch = currentType==IDataType.class||currentType.isAnnotationPresent(IGenericDataType.class);
 					buttonSwitchType = addButton(new GuiButtonII(buttonList.size(), x+width-12-(hasTypeSwitch?7: 0), y, 12, 12, paramIcon.toString(), 0f, 0f, 1f, 1f));
 
 					if(hasTypeSwitch)
@@ -151,8 +152,8 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 				}
 			}
 			buttonUseAccessor.visible = pageEditor!=null;
-			this.paramName = dataType.getMeta().params()!=null?
-					dataType.getMeta().params()[(page-1)%dataType.getMeta().params().length]:
+			this.paramName = dataType.getOperation().params!=null?
+					dataType.getOperation().params[(page-1)%dataType.getOperation().params.length]:
 					"value";
 		}
 	}
@@ -162,9 +163,12 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 		if(operations.isEmpty())
 			return;
 
+		if(dataType.getOperation()==null)
+			dataType.setDefaultValue();
+
 		DataOperation op;
-		if(dataType.getOperation()==null||!operations.contains(dataType.getMeta().name()))
-			op = IIDataOperationUtils.getOperationInstance(operations.get(0));
+		if(dataType.getOperation()==null||!operations.contains(dataType.getOperation().name))
+			op = DataOperations.getOperationInstance(operations.get(0));
 		else
 			op = dataType.getOperation();
 		dataType.setOperation(op);
@@ -233,23 +237,28 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 			{
 				outputType();
 				if(pageEditor.dataType instanceof DataTypeAccessor)
-					dataType.data[page-1] = new DataPacket().getVarInType(dataType.getMeta().allowedTypes()[page-1], null);
+				{
+					dataType.data[page-1] = new DataPacket().getVarInType(dataType.getOperation().allowedTypes[page-1], null);
+					dataType.data[page-1].setDefaultValue();
+				}
 				else
+				{
 					dataType.data[page-1] = new DataTypeAccessor('a');
+				}
 				init();
 				return true;
 			}
 			if(buttonTypeNext!=null&&(buttonTypeNext.mousePressed(mc, mouseX, mouseY)||buttonTypePrev.mousePressed(mc, mouseX, mouseY)))
 			{
 				boolean forward = buttonSwitchType.mousePressed(mc, mouseX, mouseY);
-				boolean isAny = dataType.getMeta().allowedTypes()[page-1]==DataType.class;
-				boolean isGeneric = isAny||dataType.getMeta().allowedTypes()[page-1].isAnnotationPresent(IGenericDataType.class);
+				boolean isAny = dataType.getOperation().allowedTypes[page-1]==IDataType.class;
+				boolean isGeneric = isAny||dataType.getOperation().allowedTypes[page-1].isAnnotationPresent(IGenericDataType.class);
 
 				if(isGeneric)
 				{
-					Class<? extends DataType> dClass = dataType.data[page-1].getClass();
+					Class<? extends IDataType> dClass = dataType.data[page-1].getClass();
 
-					List<Class<? extends DataType>> collect;
+					List<Class<? extends IDataType>> collect;
 
 					if(isAny)
 						collect = new ArrayList<>(editors.keySet());
@@ -265,8 +274,8 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 					{
 						int i = IIUtils.cycleInt(forward, collect.indexOf(dClass), 0, collect.size()-1);
 
-						dataType.data[page-1] = IIDataTypeUtils.getVarInstance(collect.get(i));
-//						dataType.data[page-1].setDefaultValue();
+						dataType.data[page-1] = DataPacket.getVarInstance(collect.get(i));
+						dataType.data[page-1].setDefaultValue();
 
 						pageEditor = null;
 						outputType();
@@ -280,7 +289,7 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 				buttonPagePrev.mousePressed(mc, mouseX, mouseY))
 		{
 			outputType();
-			page = IIUtils.cycleInt(buttonPageNext.isMouseOver(), page, 0, dataType.getMeta().allowedTypes().length);
+			page = IIUtils.cycleInt(buttonPageNext.isMouseOver(), page, 0, dataType.getOperation().allowedTypes.length);
 			init();
 			return true;
 		}
@@ -307,11 +316,13 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 		if(page==0)
 		{
 			if(dropdownOperationPicker.selectedEntry!=-1)
-				dataType.setOperation(IIDataOperationUtils.getOperationInstance(operations.get(dropdownOperationPicker.selectedEntry)));
+				dataType.setOperation(DataOperations.getOperationInstance(operations.get(dropdownOperationPicker.selectedEntry)));
 			dataType.setRequiredVariable(dropdownLetterPicker.selectedEntry);
 		}
 		else if(pageEditor!=null)
+		{
 			dataType.data[page-1] = pageEditor.outputType();
+		}
 		validateExpression();
 		return dataType;
 	}
@@ -332,6 +343,8 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 
 		}
 		else if(pageEditor!=null)
+		{
 			pageEditor.getTooltip(tooltip, mx, my);
+		}
 	}
 }
