@@ -10,7 +10,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.IDataStorageItem;
+import pl.pabilo8.immersiveintelligence.api.data.device.IDataStorageItem;
 import pl.pabilo8.immersiveintelligence.api.utils.ItemTooltipHandler;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
 import pl.pabilo8.immersiveintelligence.common.util.item.IICategory;
@@ -44,7 +44,7 @@ public class ItemIIPunchtape extends ItemIIBase implements IDataStorageItem
 			{
 				tooltip.add(I18n.format(IIReference.DESCRIPTION_KEY+"data_storage"));
 				packet.variables.forEach(
-						(c, t) -> tooltip.add("   "+t.getTypeColour().getHexCol(I18n.format(IIReference.DATA_KEY+"datatype."+t.getName()))+" "+TextFormatting.GRAY+c)
+						(c, t) -> tooltip.add("   "+t.getTypeColor().getHexCol(I18n.format(IIReference.DATA_KEY+"datatype."+t.getName()))+" "+TextFormatting.GRAY+c)
 				);
 			}
 		}

@@ -31,8 +31,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.model.TRSRTransformation;
 import org.apache.commons.lang3.StringUtils;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.DataWireNetwork;
-import pl.pabilo8.immersiveintelligence.api.data.IDataConnector;
+import pl.pabilo8.immersiveintelligence.api.data.device.DataWireNetwork;
+import pl.pabilo8.immersiveintelligence.api.data.device.IDataConnector;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeString;
 import pl.pabilo8.immersiveintelligence.api.utils.tools.IAdvancedTextOverlay;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
@@ -127,26 +127,18 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 		}
 	}
 
-	private String[] compilePacketString() {
-		// Convert the packet's variables into a human-readable string format
+	private String[] compilePacketString()
+	{
+		//gets variables in format l:{Value:0}
 		return minimizeArrays(
 				lastPacket.variables.entrySet().stream()
-						.map(entry -> {
-							//Convert IIColor to a hex string or ARGB integer properly
-							IIColor color = entry.getValue().getTypeColour();
-
-							int colorValue = color.getPackedRGB();  // Extract RGB integer
-
-							String colorHex = String.format("%06X", colorValue);  // Convert to hexadecimal
-
-							return String.format("<hexcol=%s:%s> %s = %s",
-									colorHex,                     // Hexadecimal color
-									entry.getValue().getName(),    // Variable name
-									entry.getKey(),                // Variable key
-									entry.getValue().valueToString().replace("\n",
-											"\n" + StringUtils.repeat(' ', entry.getValue().getName().length() + 7))
-							);
-						})
+						.map(entry -> String.format("%s %s = %s",
+								entry.getValue().getTypeColor().getHexCol(entry.getValue().getName()),
+								entry.getKey(),
+								entry.getValue().toString().replace(
+												"\n", "\n"+StringUtils.repeat(' ', (entry.getValue().getName().length()+7)))
+										.trim()
+						))
 						.map(s -> s.split("\n"))
 						.toArray(String[][]::new)
 		);

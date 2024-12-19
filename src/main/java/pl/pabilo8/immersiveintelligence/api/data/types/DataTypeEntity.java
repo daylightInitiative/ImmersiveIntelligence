@@ -7,7 +7,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
-import pl.pabilo8.immersiveintelligence.common.util.IIColor;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -16,7 +16,7 @@ import java.util.Optional;
  * @author Pabilo8
  * @since 2019-06-01
  */
-public class DataTypeEntity implements IDataType
+public class DataTypeEntity extends DataType
 {
 	//primary info
 	public int entityID = 0;
@@ -55,30 +55,6 @@ public class DataTypeEntity implements IDataType
 		return "entity";
 	}
 
-	@Nonnull
-	@Override
-	public String[][] getTypeInfoTable()
-	{
-		return new String[][]{{"ie.manual.entry.def_value", "ie.manual.entry.empty"}};
-	}
-
-	@Nonnull
-	@Override
-	public String valueToString()
-	{
-		return actualValueToNBT(new NBTTagCompound()).toString();
-	}
-
-	@Override
-	public void setDefaultValue()
-	{
-		entityID = 0;
-		dimensionID = 0;
-		entityClass = "";
-		customName = "";
-		lastPos = Vec3d.ZERO;
-	}
-
 	@Override
 	public void valueFromNBT(NBTTagCompound n)
 	{
@@ -96,12 +72,6 @@ public class DataTypeEntity implements IDataType
 		NBTTagCompound nbt = getHeaderTag();
 		actualValueToNBT(nbt);
 		return nbt;
-	}
-
-	@Override
-	public IIColor getTypeColour()
-	{
-		return IIColor.fromPackedRGB(0x435e46);
 	}
 
 	public NBTTagCompound actualValueToNBT(NBTTagCompound nbt)
@@ -133,5 +103,11 @@ public class DataTypeEntity implements IDataType
 		DataTypeEntity casted = (DataTypeEntity)obj;
 
 		return casted.entityID==entityID&&casted.dimensionID==dimensionID;
+	}
+
+	@Override
+	public String toString()
+	{
+		return actualValueToNBT(new NBTTagCompound()).toString();
 	}
 }

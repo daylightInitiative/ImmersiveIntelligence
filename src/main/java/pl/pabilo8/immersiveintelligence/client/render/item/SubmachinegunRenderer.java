@@ -18,8 +18,8 @@ import pl.pabilo8.immersiveintelligence.api.ammo.AmmoRegistry;
 import pl.pabilo8.immersiveintelligence.client.fx.IIParticles;
 import pl.pabilo8.immersiveintelligence.client.util.amt.*;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMTBullet.BulletState;
+import pl.pabilo8.immersiveintelligence.client.util.amt.IIItemRendererAMT.RegisteredItemRenderer;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Weapons.AssaultRifle;
-import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Weapons.Submachinegun;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIGunBase;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIISubmachinegun;
@@ -35,6 +35,7 @@ import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
  * @updated 23.12.2023
  * @since 13-10-2019
  */
+@RegisteredItemRenderer(name = "items/weapons/submachinegun")
 public class SubmachinegunRenderer extends IIUpgradableItemRendererAMT<ItemIISubmachinegun> implements ISpecificHandRenderer
 {
 	//Animations
@@ -115,7 +116,7 @@ public class SubmachinegunRenderer extends IIUpgradableItemRendererAMT<ItemIISub
 	{
 		EasyNBT nbt = EasyNBT.wrapNBT(stack);
 
-		model.getVariant(nbt.getString("contributorSkin"), stack);
+		model.getVariant(nbt.getString(IISkinHandler.NBT_ENTRY), stack);
 		model.forEach(AMT::defaultize);
 
 		//Make upgrade AMTs visible
@@ -137,15 +138,16 @@ public class SubmachinegunRenderer extends IIUpgradableItemRendererAMT<ItemIISub
 		IIAnimationUtils.setModelVisibility(offHand.get(), handRender);
 
 
+		//Aiming animation
+		int aiming = nbt.getInt(ItemIISubmachinegun.AIMING);
+		EasyNBT upgradeNBT = EasyNBT.wrapNBT(item.getUpgrades(stack));
+		float preciseAim = IIAnimationUtils.getAnimationProgress(aiming, item.getAimingTime(stack, upgradeNBT),
+				true, !Minecraft.getMinecraft().player.isSneaking(),
+				1, 3,
+				partialTicks);
+		//first-person perspective
 		if(handRender)
 		{
-			int aiming = nbt.getInt(ItemIISubmachinegun.AIMING);
-			EasyNBT upgradeNBT = EasyNBT.wrapNBT(item.getUpgrades(stack));
-			float preciseAim = IIAnimationUtils.getAnimationProgress(aiming, item.getAimingTime(stack, upgradeNBT),
-					true, !Minecraft.getMinecraft().player.isSneaking(),
-					1, 3,
-					partialTicks);
-
 			if(preciseAim > 0)
 			{
 				//gun "push" towards player
@@ -159,12 +161,12 @@ public class SubmachinegunRenderer extends IIUpgradableItemRendererAMT<ItemIISub
 
 				if(recoil > 0)
 					GlStateManager.translate(0, -recoil*(0.155-0.1*preciseAim), recoil*0.25);
-
-				if(item.hasIIUpgrade(stack, WeaponUpgrade.FOLDING_STOCK))
-					foldingStock.apply(preciseAim);
 			}
 			(transform==TransformType.FIRST_PERSON_RIGHT_HAND?handAngle: offHandAngle).apply(preciseAim);
 		}
+		if(item.hasIIUpgrade(stack, WeaponUpgrade.FOLDING_STOCK)&&preciseAim > 0)
+			foldingStock.apply(preciseAim);
+
 
 		//Don't show muzzle flash GUI
 		if(transform==TransformType.GUI)
@@ -281,8 +283,8 @@ public class SubmachinegunRenderer extends IIUpgradableItemRendererAMT<ItemIISub
 	}
 
 	@Override
-	public boolean renderCrosshair(ItemStack stack, EnumHand hand)
+	public boolean shouldCancelCrosshair(ItemStack stack, EnumHand hand)
 	{
-		return ItemNBTHelper.getInt(stack, ItemIISubmachinegun.AIMING) > Submachinegun.aimTime*0.85;
+		return ItemNBTHelper.getInt(stack, ItemIISubmachinegun.AIMING) >= item.getAimingTime(stack, EasyNBT.wrapNBT(item.getUpgrades(stack)))*0.85;
 	}
 }

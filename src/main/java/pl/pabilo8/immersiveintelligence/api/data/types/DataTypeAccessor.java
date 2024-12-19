@@ -2,7 +2,7 @@ package pl.pabilo8.immersiveintelligence.api.data.types;
 
 import net.minecraft.nbt.NBTTagCompound;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.common.util.IIColor;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 
 import javax.annotation.Nonnull;
 
@@ -10,9 +10,9 @@ import javax.annotation.Nonnull;
  * @author Pabilo8
  * @since 05-07-2019
  */
-public class DataTypeAccessor implements IDataType
+public class DataTypeAccessor extends DataType
 {
-	public char variable;
+	public char variable = 'a';
 
 	public DataTypeAccessor(char variable)
 	{
@@ -23,27 +23,7 @@ public class DataTypeAccessor implements IDataType
 	{
 	}
 
-	@Nonnull
-	@Override
-	public String getName()
-	{
-		return "accessor";
-	}
-
-	@Nonnull
-	@Override
-	public String valueToString()
-	{
-		return "@"+variable;
-	}
-
-	@Override
-	public void setDefaultValue()
-	{
-		variable = 'a';
-	}
-
-	public IDataType getRealValue(DataPacket data)
+	public DataType getRealValue(DataPacket data)
 	{
 		return data.getPacketVariable(this.variable);
 	}
@@ -65,14 +45,14 @@ public class DataTypeAccessor implements IDataType
 	}
 
 	@Override
-	public IIColor getTypeColour()
-	{
-		return IIColor.fromPackedRGB(0x161c26);
-	}
-
-	@Override
 	public boolean equals(Object obj)
 	{
 		return obj instanceof DataTypeAccessor&&((DataTypeAccessor)obj).variable==variable;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "@"+variable;
 	}
 }

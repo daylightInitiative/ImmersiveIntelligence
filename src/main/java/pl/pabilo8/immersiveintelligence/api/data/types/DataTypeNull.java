@@ -1,34 +1,16 @@
 package pl.pabilo8.immersiveintelligence.api.data.types;
 
 import net.minecraft.nbt.NBTTagCompound;
-import pl.pabilo8.immersiveintelligence.common.util.IIColor;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 
 /**
  * @author Pabilo8
  * @since 2019-06-01
  */
-public class DataTypeNull implements IDataType
+public class DataTypeNull extends DataType
 {
 	public DataTypeNull()
 	{
-	}
-
-	@Override
-	public String getName()
-	{
-		return "null";
-	}
-
-	@Override
-	public String valueToString()
-	{
-		return "null";
-	}
-
-	@Override
-	public void setDefaultValue()
-	{
-
 	}
 
 	@Override
@@ -44,14 +26,14 @@ public class DataTypeNull implements IDataType
 	}
 
 	@Override
-	public IIColor getTypeColour()
-	{
-		return IIColor.fromPackedRGB(0x8f2fb3);
-	}
-
-	@Override
 	public boolean equals(Object obj)
 	{
 		return obj instanceof DataTypeNull;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "null";
 	}
 }

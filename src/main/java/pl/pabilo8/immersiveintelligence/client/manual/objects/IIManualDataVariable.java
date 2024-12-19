@@ -1,6 +1,5 @@
 package pl.pabilo8.immersiveintelligence.client.manual.objects;
 
-import blusunrize.immersiveengineering.client.ClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
@@ -9,8 +8,9 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.text.TextFormatting;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataTypeUtils;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeNull;
-import pl.pabilo8.immersiveintelligence.api.data.types.IDataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 import pl.pabilo8.immersiveintelligence.client.IIClientUtils;
 import pl.pabilo8.immersiveintelligence.client.gui.IDataMachineGui;
 import pl.pabilo8.immersiveintelligence.client.manual.IIManualObject;
@@ -35,9 +35,10 @@ public class IIManualDataVariable extends IIManualObject
 {
 	private final static ResLoc TEXTURE_IN = ResLoc.of(IIReference.RES_TEXTURES_MANUAL, "data/input").withExtension(ResLoc.EXT_PNG);
 	private final static ResLoc TEXTURE_OUT = ResLoc.of(IIReference.RES_TEXTURES_MANUAL, "data/output").withExtension(ResLoc.EXT_PNG);
+	private final static ResLoc TEXTURE_EVENT = ResLoc.of(IIReference.RES_TEXTURES_MANUAL, "data/event").withExtension(ResLoc.EXT_PNG);
 
 	@Nonnull
-	IDataType type = new DataTypeNull();
+	DataType type = new DataTypeNull();
 	/**
 	 * Name and basic description of this variable
 	 */
@@ -68,14 +69,12 @@ public class IIManualDataVariable extends IIManualObject
 	public void postInit(IIManualPage page)
 	{
 		super.postInit(page);
-
-		Class<? extends IDataType> clazz = DataPacket.varTypes.getOrDefault(dataSource.getString("type"), DataTypeNull.class);
-		this.type = DataPacket.getVarInstance(clazz);
+		this.type = IIDataTypeUtils.getVarInstance(dataSource.getString("type"));
 
 		dataSource.checkSetString("letter", s -> letter = s, "");
 		dataSource.checkSetString("name", s -> name = s, "");
 		dataSource.checkSetString("description", s -> description = s, "");
-		dataSource.checkSetString("direction", b -> inputVariable = b.equals("out"), "in");
+		dataSource.checkSetString("direction", b -> inputVariable = b.equals("in"), "out");
 
 		value = null;
 		values = null;
@@ -108,7 +107,7 @@ public class IIManualDataVariable extends IIManualObject
 		boolean unicodeFlag = manual.fontRenderer.getUnicodeFlag();
 		manual.fontRenderer.setUnicodeFlag(true);
 		this.height += Math.max(0,
-				manual.fontRenderer.getWordWrappedHeight(description, width)+8-height
+				manual.fontRenderer.getWordWrappedHeight(description, width)-4
 		);
 		manual.fontRenderer.setUnicodeFlag(unicodeFlag);
 
@@ -128,7 +127,7 @@ public class IIManualDataVariable extends IIManualObject
 		super.drawButton(mc, mx, my, partialTicks);
 
 		GlStateManager.pushMatrix();
-		ClientUtils.bindTexture(type.textureLocation());
+		IIClientUtils.bindTexture(type.getTextureLocation());
 		GlStateManager.color(1f, 1f, 1f, 1f);
 		GlStateManager.enableBlend();
 		Gui.drawModalRectWithCustomSizedTexture(x, y, 0, 0, 16, 16, 16, 16);
@@ -140,7 +139,7 @@ public class IIManualDataVariable extends IIManualObject
 		boolean unicodeFlag = manual.fontRenderer.getUnicodeFlag();
 		manual.fontRenderer.setUnicodeFlag(true);
 		if(letter!=null)
-			manual.fontRenderer.drawString(TextFormatting.BOLD+letter, x+18, y+4, type.getTypeColour().getPackedRGB());
+			manual.fontRenderer.drawString(TextFormatting.BOLD+letter, x+18, y+4, type.getTypeColor().getPackedRGB());
 		manual.fontRenderer.drawString(TextFormatting.BOLD+name, x+(letter==null?18: 24), y-4, manual.getTextColour());
 		manual.fontRenderer.drawSplitString(description, x+(letter==null?18: 24), y+4, (letter==null?110: 104), manual.getTextColour());
 		manual.fontRenderer.setUnicodeFlag(unicodeFlag);
@@ -173,7 +172,7 @@ public class IIManualDataVariable extends IIManualObject
 			ArrayList<String> lines = new ArrayList<>();
 			lines.add(String.format(
 					"<%s> %s",
-					type.getTypeColour().getHexCol(I18n.format(IIReference.DATA_KEY+"datatype."+type.getName())),
+					type.getTypeColor().getHexCol(I18n.format(IIReference.DATA_KEY+"datatype."+type.getName())),
 					name
 			));
 

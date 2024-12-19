@@ -1,14 +1,13 @@
 package pl.pabilo8.immersiveintelligence.client.manual.objects;
 
-import blusunrize.immersiveengineering.client.ClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
-import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataTypeUtils;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeNull;
-import pl.pabilo8.immersiveintelligence.api.data.types.IDataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 import pl.pabilo8.immersiveintelligence.client.IIClientUtils;
 import pl.pabilo8.immersiveintelligence.client.manual.IIManualObject;
 import pl.pabilo8.immersiveintelligence.client.manual.IIManualPage;
@@ -31,7 +30,7 @@ public class IIManualDataCallback extends IIManualObject
 	private final static ResLoc TEXTURE_CALLBACK = ResLoc.of(IIReference.RES_TEXTURES_MANUAL, "data/callback").withExtension(ResLoc.EXT_PNG);
 
 	@Nonnull
-	IDataType type = new DataTypeNull();
+	DataType type = new DataTypeNull();
 	String name, label, returns;
 
 	//--- Setup ---//
@@ -45,9 +44,7 @@ public class IIManualDataCallback extends IIManualObject
 	public void postInit(IIManualPage page)
 	{
 		super.postInit(page);
-
-		Class<? extends IDataType> clazz = DataPacket.varTypes.getOrDefault(dataSource.getString("type"), DataTypeNull.class);
-		this.type = DataPacket.getVarInstance(clazz);
+		this.type = IIDataTypeUtils.getVarInstance(dataSource.getString("type"));
 
 		dataSource.checkSetString("name", s -> name = s, "missingno");
 		dataSource.checkSetString("label", s -> label = s, name);
@@ -58,7 +55,7 @@ public class IIManualDataCallback extends IIManualObject
 	@Override
 	protected int getDefaultHeight()
 	{
-		return 16;
+		return 18;
 	}
 
 	//--- Rendering, Reaction ---//
@@ -69,7 +66,7 @@ public class IIManualDataCallback extends IIManualObject
 		super.drawButton(mc, mx, my, partialTicks);
 
 		GlStateManager.pushMatrix();
-		ClientUtils.bindTexture(type.textureLocation());
+		IIClientUtils.bindTexture(type.getTextureLocation());
 		GlStateManager.color(1f, 1f, 1f, 1f);
 		GlStateManager.enableBlend();
 		Gui.drawModalRectWithCustomSizedTexture(x, y, 0, 0, 16, 16, 16, 16);
@@ -110,7 +107,7 @@ public class IIManualDataCallback extends IIManualObject
 			ArrayList<String> lines = new ArrayList<>();
 			lines.add(String.format(
 					"<%s> %s",
-					type.getTypeColour().getHexCol(I18n.format(IIReference.DATA_KEY+"datatype."+type.getName())),
+					type.getTypeColor().getHexCol(I18n.format(IIReference.DATA_KEY+"datatype."+type.getName())),
 					IIStringUtil.getItalicString(name)
 			));
 

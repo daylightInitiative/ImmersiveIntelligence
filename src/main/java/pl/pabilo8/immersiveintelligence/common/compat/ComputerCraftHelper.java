@@ -8,6 +8,7 @@ import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraftforge.fml.common.Optional;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
 import pl.pabilo8.immersiveintelligence.api.data.types.*;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 import pl.pabilo8.immersiveintelligence.common.block.data_device.tileentity.TileEntityDataConnector;
 
 import javax.annotation.Nonnull;
@@ -103,7 +104,7 @@ public class ComputerCraftHelper extends IICompatModule
 							if(map.containsKey(String.valueOf(c))) //parse into IDataType
 							{
 								Object o = map.get(String.valueOf(c));
-								IDataType type;
+								DataType type;
 								switch(ArgumentHelper.getType(o))
 								{
 									default:
@@ -140,8 +141,8 @@ public class ComputerCraftHelper extends IICompatModule
 					if(!te.compatReceived)
 					{
 						Map<String, Object> map = new HashMap<>();
-						for(Entry<Character, IDataType> entry : te.lastReceived.variables.entrySet())
-							map.put(entry.getKey().toString(), entry.getValue().valueToString());
+						for(Entry<Character, DataType> entry : te.lastReceived.variables.entrySet())
+							map.put(entry.getKey().toString(), entry.getValue().toString());
 
 						te.compatReceived = true;
 						return new Object[]{map};

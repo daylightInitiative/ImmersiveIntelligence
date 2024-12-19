@@ -3,24 +3,26 @@ package pl.pabilo8.immersiveintelligence.api.data.types;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.common.util.IIColor;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataTypeUtils;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.IterableDataType;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Pabilo8
  * @since 2019-06-01
  */
-public class DataTypeMap implements IDataTypeIterable
+public class DataTypeMap extends IterableDataType implements Map<DataType, DataType>
 {
-	private HashMap<IDataType, IDataType> values;
+	private final HashMap<DataType, DataType> values = new HashMap<>();
 
-	public DataTypeMap(IDataType key, IDataType value)
+	public DataTypeMap(DataType key, DataType value)
 	{
-		setDefaultValue();
 		values.put(key, value);
 	}
 
@@ -29,22 +31,38 @@ public class DataTypeMap implements IDataTypeIterable
 
 	}
 
-	public DataTypeMap put(IDataType key, IDataType value)
+	@Override
+	public int size()
 	{
-		if(values.size() < 255)
-			values.put(key, value);
-
-		return this;
+		return values.size();
 	}
 
-	@Nonnull
-	public IDataType getValue(IDataType key)
+	@Override
+	public boolean isEmpty()
+	{
+		return values.isEmpty();
+	}
+
+	@Override
+	public boolean containsKey(Object key)
+	{
+		return values.containsKey(key);
+	}
+
+	@Override
+	public boolean containsValue(Object value)
+	{
+		return values.containsValue(value);
+	}
+
+	@Override
+	public DataType get(Object key)
 	{
 		return values.getOrDefault(key, new DataTypeNull());
 	}
 
 	@Nonnull
-	public IDataType getKey(IDataType value)
+	public DataType getKey(DataType value)
 	{
 		//ah, yes, the lambdas
 		return values.entrySet()
@@ -55,37 +73,53 @@ public class DataTypeMap implements IDataTypeIterable
 				.orElse(new DataTypeNull());
 	}
 
-	@Nonnull
-	@Override
-	public String getName()
+	public DataTypeMap put(DataType key, DataType value)
 	{
-		return "map";
-	}
-
-	@Nonnull
-	@Override
-	public String[][] getTypeInfoTable()
-	{
-		return new String[][]{{"ie.manual.entry.def_value", "ie.manual.entry.empty"}, {"ie.manual.entry.max_length", "255"}};
-	}
-
-	@Nonnull
-	@Override
-	public String valueToString()
-	{
-		return values.toString();
+		if(values.size() < 255)
+			values.put(key, value);
+		return this;
 	}
 
 	@Override
-	public void setDefaultValue()
+	public DataType remove(Object key)
 	{
-		this.values = new HashMap<>();
+		return values.remove(key);
+	}
+
+	@Override
+	public void putAll(Map<? extends DataType, ? extends DataType> m)
+	{
+		values.putAll(m);
+	}
+
+	@Override
+	public void clear()
+	{
+		values.clear();
+	}
+
+	@Override
+	public Set<DataType> keySet()
+	{
+		return values.keySet();
+	}
+
+	@Override
+	public Collection<DataType> values()
+	{
+		return values.values();
+	}
+
+	@Override
+	public Set<Entry<DataType, DataType>> entrySet()
+	{
+		return values.entrySet();
 	}
 
 	@Override
 	public void valueFromNBT(NBTTagCompound n)
 	{
-		setDefaultValue();
+		values.clear();
 		NBTTagList l = n.getTagList("Entries", 10);
 
 		for(NBTBase b : l)
@@ -94,7 +128,7 @@ public class DataTypeMap implements IDataTypeIterable
 			{
 				NBTTagCompound c = (NBTTagCompound)b;
 				if(c.hasKey("Key")&&c.hasKey("Value"))
-					values.put(DataPacket.getVarFromNBT(c.getCompoundTag("Key")), DataPacket.getVarFromNBT(c.getCompoundTag("Value")));
+					values.put(IIDataTypeUtils.getVarFromNBT(c.getCompoundTag("Key")), IIDataTypeUtils.getVarFromNBT(c.getCompoundTag("Value")));
 			}
 		}
 	}
@@ -106,7 +140,7 @@ public class DataTypeMap implements IDataTypeIterable
 		NBTTagCompound nbt = getHeaderTag();
 		NBTTagList list = new NBTTagList();
 
-		for(Entry<IDataType, IDataType> entry : values.entrySet())
+		for(Entry<DataType, DataType> entry : values.entrySet())
 		{
 			NBTTagCompound tag = new NBTTagCompound();
 			tag.setTag("Key", entry.getKey().valueToNBT());
@@ -119,8 +153,8 @@ public class DataTypeMap implements IDataTypeIterable
 	}
 
 	@Override
-	public IIColor getTypeColour()
+	public String toString()
 	{
-		return IIColor.fromPackedRGB(0x4d5914);
+		return values.toString();
 	}
 }

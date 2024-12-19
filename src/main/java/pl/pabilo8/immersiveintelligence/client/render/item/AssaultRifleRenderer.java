@@ -1,6 +1,5 @@
 package pl.pabilo8.immersiveintelligence.client.render.item;
 
-import blusunrize.immersiveengineering.api.Lib;
 import blusunrize.immersiveengineering.client.ClientUtils;
 import blusunrize.immersiveengineering.client.ImmersiveModelRegistry.ItemModelReplacement;
 import blusunrize.immersiveengineering.client.ImmersiveModelRegistry.ItemModelReplacement_OBJ;
@@ -21,6 +20,7 @@ import pl.pabilo8.immersiveintelligence.api.ammo.AmmoRegistry;
 import pl.pabilo8.immersiveintelligence.client.fx.IIParticles;
 import pl.pabilo8.immersiveintelligence.client.util.amt.*;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMTBullet.BulletState;
+import pl.pabilo8.immersiveintelligence.client.util.amt.IIItemRendererAMT.RegisteredItemRenderer;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Weapons.AssaultRifle;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIAssaultRifle;
@@ -36,6 +36,7 @@ import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
  * @author Pabilo8
  * @since 18.09.2022
  */
+@RegisteredItemRenderer(name = "items/weapons/assault_rifle")
 public class AssaultRifleRenderer extends IIUpgradableItemRendererAMT<ItemIIAssaultRifle> implements ISpecificHandRenderer
 {
 	IIAnimationCachedMap load, unload, modeSwitch, fire, handAngle, offHandAngle;
@@ -115,8 +116,7 @@ public class AssaultRifleRenderer extends IIUpgradableItemRendererAMT<ItemIIAssa
 
 		EasyNBT nbt = EasyNBT.wrapNBT(stack);
 
-		//TODO: 12.04.2023 skins and shaders
-		model.getVariant(nbt.getString("contributorSkin"), stack);
+		model.getVariant(nbt.getString(IISkinHandler.NBT_ENTRY), stack);
 		model.forEach(AMT::defaultize);
 
 		//Make upgrade AMTs visible
@@ -170,7 +170,7 @@ public class AssaultRifleRenderer extends IIUpgradableItemRendererAMT<ItemIIAssa
 			(transform==TransformType.FIRST_PERSON_RIGHT_HAND?handAngle: offHandAngle).apply(preciseAim);
 		}
 
-		fireGrenade.apply(0);
+		//fireGrenade.apply(0);
 		//Choose and apply firing animation
 
 		(fireMode==2?fireGrenade: fire).apply((1f-((firing-partialTicks)/firingDelay)));
@@ -293,11 +293,11 @@ public class AssaultRifleRenderer extends IIUpgradableItemRendererAMT<ItemIIAssa
 								new AMTText("nixie_text1", combinedHeader)
 										.setText("0")
 										.setFontSize(0.015625f)
-										.setColor(Lib.colour_nixieTubeText),
+										.setColor(IIReference.COLOR_NIXIE_ORANGE),
 								new AMTText("nixie_text2", combinedHeader)
 										.setText("0")
 										.setFontSize(0.015625f)
-										.setColor(Lib.colour_nixieTubeText)
+										.setColor(IIReference.COLOR_NIXIE_ORANGE)
 						}
 				).withTextureProvider(
 						(res, stack) ->
@@ -352,7 +352,7 @@ public class AssaultRifleRenderer extends IIUpgradableItemRendererAMT<ItemIIAssa
 	}
 
 	@Override
-	public boolean renderCrosshair(ItemStack stack, EnumHand hand)
+	public boolean shouldCancelCrosshair(ItemStack stack, EnumHand hand)
 	{
 		if(item.isScoped(stack))
 			return false;

@@ -61,6 +61,8 @@ import pl.pabilo8.immersiveintelligence.api.ammo.AmmoRegistry;
 import pl.pabilo8.immersiveintelligence.api.ammo.PenetrationRegistry;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.IAmmoTypeItem;
 import pl.pabilo8.immersiveintelligence.api.crafting.DustUtils;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataOperationUtils;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataTypeUtils;
 import pl.pabilo8.immersiveintelligence.api.rotary.CapabilityRotaryEnergy;
 import pl.pabilo8.immersiveintelligence.api.rotary.IIRotaryUtils;
 import pl.pabilo8.immersiveintelligence.api.utils.IUpgradableMachine;
@@ -300,6 +302,8 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 
 		ExcavatorHandler.addMineral("Wolframite", 15, .15f, new String[]{"oreTungsten", "oreIron"}, new float[]{.25f, .75f});
 		ExcavatorHandler.addMineral("Ferberite", 10, .2f, new String[]{"oreTungsten", "oreIron", "oreTin"}, new float[]{.2f, .4f, .3f});
+		ExcavatorHandler.addMineral("Smithsonite", 10, .15f, new String[]{"oreZinc"}, new float[]{1.0f});
+		ExcavatorHandler.addMineral("Halite", 15, .10f, new String[]{"oreSalt"}, new float[]{1.0f});
 
 		LighterFuelHandler.addFuel(FluidRegistry.getFluid("creosote"), 100);
 		LighterFuelHandler.addFuel(FluidRegistry.getFluid("ethanol"), 20);
@@ -341,6 +345,9 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 		IEApi.prefixToIngotMap.put("spring", new Integer[]{2, 1});
 
 		IIContent.init();
+
+		IIDataTypeUtils.registerDataTypes();
+		IIDataOperationUtils.registerDataOperations();
 
 		//ALWAYS REGISTER BULLETS IN PRE-INIT! (so they get their texture registered before TextureStitchEvent.Pre)
 		//Bullets
@@ -600,6 +607,8 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 		for(IMultiblock mb : IIContent.MULTIBLOCKS)
 			if(mb instanceof MultiblockStuctureBase)
 				((MultiblockStuctureBase<?>)mb).updateStructure();
+
+		IISounds.init();
 	}
 
 	public void postInit()

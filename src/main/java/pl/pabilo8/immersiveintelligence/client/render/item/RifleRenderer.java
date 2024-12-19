@@ -22,6 +22,7 @@ import pl.pabilo8.immersiveintelligence.api.ammo.enums.CoreType;
 import pl.pabilo8.immersiveintelligence.client.fx.IIParticles;
 import pl.pabilo8.immersiveintelligence.client.util.amt.*;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMTBullet.BulletState;
+import pl.pabilo8.immersiveintelligence.client.util.amt.IIItemRendererAMT.RegisteredItemRenderer;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Weapons.AssaultRifle;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIGunBase;
@@ -38,6 +39,7 @@ import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
  * @author Pabilo8
  * @since 18.09.2022
  */
+@RegisteredItemRenderer(name = "items/weapons/rifle")
 public class RifleRenderer extends IIUpgradableItemRendererAMT<ItemIIRifle> implements ISpecificHandRenderer
 {
 	private MTLTextureRemapper handmadeRemapper;
@@ -111,7 +113,7 @@ public class RifleRenderer extends IIUpgradableItemRendererAMT<ItemIIRifle> impl
 		AmmoHandler ammoHandler = item.getAmmoHandler(stack);
 
 		//Set model variant
-		model.getVariant(nbt.hasKey("handmade")?"diy": nbt.getString("contributorSkin"), stack);
+		model.getVariant(nbt.hasKey("handmade")?"diy": nbt.getString(IISkinHandler.NBT_ENTRY), stack);
 		model.forEach(AMT::defaultize);
 
 		int firing = nbt.getInt(ItemIIRifle.FIRE_DELAY);
@@ -224,7 +226,7 @@ public class RifleRenderer extends IIUpgradableItemRendererAMT<ItemIIRifle> impl
 						(stack, combinedHeader) -> new AMT[]{
 								new AMTBullet("bullet", combinedHeader, AmmoRegistry.getModel(IIContent.itemAmmoMachinegun))
 										.withState(BulletState.BULLET_UNUSED)
-										.withProperties(IIContent.ammoCoreSteel, CoreType.PIERCING, -1),
+										.withProperties(IIContent.ammoCoreSteel, CoreType.PIERCING, null),
 								new AMTBullet("casing_fired", combinedHeader, AmmoRegistry.getModel(IIContent.itemAmmoMachinegun))
 										.withState(BulletState.CASING),
 								new AMTParticle("muzzle_flash", combinedHeader)
@@ -291,7 +293,7 @@ public class RifleRenderer extends IIUpgradableItemRendererAMT<ItemIIRifle> impl
 	}
 
 	@Override
-	public boolean renderCrosshair(ItemStack stack, EnumHand hand)
+	public boolean shouldCancelCrosshair(ItemStack stack, EnumHand hand)
 	{
 		if(item.hasIIUpgrade(stack, WeaponUpgrade.SCOPE))
 			return false;

@@ -20,8 +20,9 @@ import pl.pabilo8.immersiveintelligence.ImmersiveIntelligence;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeArray;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeInteger;
-import pl.pabilo8.immersiveintelligence.api.data.types.IDataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 import pl.pabilo8.immersiveintelligence.client.ClientProxy;
+import pl.pabilo8.immersiveintelligence.client.IIClientUtils;
 import pl.pabilo8.immersiveintelligence.client.gui.ITabbedGui;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Machines.DataInputMachine;
 import pl.pabilo8.immersiveintelligence.common.IIGuiList;
@@ -154,7 +155,7 @@ public class GuiDataRedstoneInterfaceRedstone extends GuiIEContainerBase impleme
 		for(char c : DataPacket.varCharacters)
 			if(list.variables.containsKey(c))
 			{
-				IDataType data = list.getPacketVariable(c);
+				DataType data = list.getPacketVariable(c);
 				//Base
 				int drawx = guiLeft+32;
 				int drawy = guiTop+12+(i*24)-scroll;
@@ -184,11 +185,11 @@ public class GuiDataRedstoneInterfaceRedstone extends GuiIEContainerBase impleme
 
 				this.drawTexturedModalRect(drawx, drawy, 0, 222, 128, 20);
 
-				ClientUtils.bindTexture(data.textureLocation());
+				IIClientUtils.bindTexture(data.getTextureLocation());
 				ClientUtils.bindTexture(texture);
 
 				//Variable type based effects
-				float[] rgb = data.getTypeColour().getFloatRGB();
+				float[] rgb = data.getTypeColor().getFloatRGB();
 				GL11.glColor4f(rgb[0], rgb[1], rgb[2], 1f);
 				this.drawTexturedModalRect(drawx, drawy, 173, 222, 8, 20);
 				this.drawTexturedModalRect(drawx+52, drawy, 184, 222, 22, 20);
@@ -240,7 +241,7 @@ public class GuiDataRedstoneInterfaceRedstone extends GuiIEContainerBase impleme
 					//this.drawTexturedModalRect(drawx+3, drawy+3, 155, 222, 16, 14);
 
 					this.drawTexturedModalRect(drawx+3, drawy+3, 155, 222, 16, 14);
-					this.fontRenderer.drawString(I18n.format("tile."+ImmersiveIntelligence.MODID+".metal_multiblock.redstone_interface.modes."+((DataTypeInteger)array.value[1]).value), drawx+64, drawy+6, data.getTypeColour().getPackedRGB(), true);
+					this.fontRenderer.drawString(I18n.format("tile."+ImmersiveIntelligence.MODID+".metal_multiblock.redstone_interface.modes."+((DataTypeInteger)array.value[1]).value), drawx+64, drawy+6, data.getTypeColor().getPackedRGB(), true);
 
 					GlStateManager.popMatrix();
 

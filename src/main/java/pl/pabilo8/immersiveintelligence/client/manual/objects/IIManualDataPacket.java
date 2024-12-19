@@ -47,13 +47,10 @@ public class IIManualDataPacket extends IIManualObject
 		//gets variables in format l:{Value:0}
 		return minimizeArrays(
 				packet.variables.entrySet().stream()
-						/*map(entry -> String.format("",
-								,*/
-						.map(entry -> String.format("<hexcol=%s:%s> %s = %s",
-								String.format("%06X", entry.getValue().getTypeColour()),
-								entry.getValue().getName(),
+						.map(entry -> String.format("%s %s = %s",
+								entry.getValue().getTypeColor().getHexCol(entry.getValue().getName()),
 								entry.getKey(),
-								entry.getValue().valueToString().replace(
+								entry.getValue().toString().replace(
 												"\n", "\n"+StringUtils.repeat(' ', (entry.getValue().getName().length()+7)))
 										.trim()
 						))

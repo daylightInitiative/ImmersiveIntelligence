@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeBoolean;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeInteger;
-import pl.pabilo8.immersiveintelligence.api.data.types.IDataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,12 +23,14 @@ public class DataPacketTest
 	{
 		dataPacket = new DataPacket();
 		assertFalse(dataPacket.hasAnyVariables());
+		IIDataTypeUtils.registerDataTypes();
+		IIDataOperationUtils.registerDataOperations();
 	}
 
 	@Test
 	public void testSetAndGetVariable()
 	{
-		IDataType booleanType = new DataTypeBoolean(true);
+		DataType booleanType = new DataTypeBoolean(true);
 		assertTrue(dataPacket.setVariable('a', booleanType));
 		assertEquals(booleanType, dataPacket.getPacketVariable('a'));
 	}
@@ -36,7 +38,7 @@ public class DataPacketTest
 	@Test
 	public void testRemoveVariable()
 	{
-		IDataType integerType = new DataTypeInteger(42);
+		DataType integerType = new DataTypeInteger(42);
 		dataPacket.setVariable('b', integerType);
 		assertTrue(dataPacket.removeVariable('b'));
 		assertFalse(dataPacket.hasVariable('b'));
@@ -45,7 +47,7 @@ public class DataPacketTest
 	@Test
 	public void testToNBT()
 	{
-		IDataType booleanType = new DataTypeBoolean(true);
+		DataType booleanType = new DataTypeBoolean(true);
 		dataPacket.setVariable('a', booleanType);
 		NBTTagCompound nbt = dataPacket.toNBT();
 		assertTrue(nbt.hasKey("a"));
@@ -82,7 +84,7 @@ public class DataPacketTest
 	@Test
 	public void testClone()
 	{
-		IDataType booleanType = new DataTypeBoolean(true);
+		DataType booleanType = new DataTypeBoolean(true);
 		dataPacket.setVariable('a', booleanType);
 		DataPacket clonedPacket = dataPacket.clone();
 		assertEquals(dataPacket, clonedPacket);

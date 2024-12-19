@@ -1,8 +1,11 @@
 package pl.pabilo8.immersiveintelligence.api.data.types;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
-import pl.pabilo8.immersiveintelligence.common.util.IIColor;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
+import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -11,52 +14,25 @@ import javax.annotation.Nullable;
  * @author Pabilo8
  * @since 2019-06-01
  */
-public class DataTypeFluidStack implements IDataType
+public class DataTypeFluidStack extends DataType
 {
 	@Nullable
-	public FluidStack value;
+	public FluidStack value = null;
 
-	public DataTypeFluidStack(FluidStack i)
+	public DataTypeFluidStack(FluidStack fluidStack)
 	{
-		this.value = i.copy();
+		this.value = fluidStack.copy();
+	}
+
+	public DataTypeFluidStack(String fluidName, int amount, String nbt)
+	{
+		Fluid fluid = FluidRegistry.getFluid(fluidName);
+		this.value = fluid==null?null: new FluidStack(fluid, amount, EasyNBT.parseNBT(nbt));
 	}
 
 	public DataTypeFluidStack()
 	{
 
-	}
-
-	@Nonnull
-	@Override
-	public String getName()
-	{
-		return "fluidstack";
-	}
-
-	@Nonnull
-	@Override
-	public String[][] getTypeInfoTable()
-	{
-		return new String[][]{{"ie.manual.entry.def_value", "ie.manual.entry.empty"}};
-	}
-
-	@Nonnull
-	@Override
-	public String valueToString()
-	{
-		if(value==null||value.getFluid()==null)
-			return "Empty";
-
-		return String.format("%d*%s%s",
-				value.amount,
-				value.getLocalizedName(),
-				value.tag!=null?value.tag.toString(): "");
-	}
-
-	@Override
-	public void setDefaultValue()
-	{
-		value = null;
 	}
 
 	@Override
@@ -80,12 +56,6 @@ public class DataTypeFluidStack implements IDataType
 	}
 
 	@Override
-	public IIColor getTypeColour()
-	{
-		return IIColor.fromPackedRGB(0x082730);
-	}
-
-	@Override
 	public boolean equals(Object obj)
 	{
 		return obj instanceof DataTypeFluidStack&&(
@@ -93,5 +63,17 @@ public class DataTypeFluidStack implements IDataType
 						((DataTypeFluidStack)obj).value==null:
 						value.isFluidStackIdentical(((DataTypeFluidStack)obj).value)
 		);
+	}
+
+	@Override
+	public String toString()
+	{
+		if(value==null||value.getFluid()==null)
+			return "Empty";
+
+		return String.format("%d*%s%s",
+				value.amount,
+				value.getLocalizedName(),
+				value.tag!=null?value.tag.toString(): "");
 	}
 }
