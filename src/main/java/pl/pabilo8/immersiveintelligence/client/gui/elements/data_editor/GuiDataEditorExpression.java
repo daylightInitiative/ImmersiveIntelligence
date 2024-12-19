@@ -87,7 +87,7 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 		if(page==0)
 		{
 			//add the lower-placed buttons first, so rendering (lack of) order is happy
-			dropdownLetterPicker = addButton(new GuiButtonDataLetterListSide(buttonList.size(), x+2, y+2+24+14, true, dataType.getRequiredVariable(), ArrowsAlignment.RIGHT));
+			dropdownLetterPicker = addButton(new GuiButtonDataLetterListSide(buttonList.size(), x+2, y+2+24+14, true, dataType.getRequiredVariable(), ArrowsAlignment.LEFT));
 
 			dropdownOperationPicker = addButton(new GuiButtonDropdownList(buttonList.size(), x+2, y+14, width-4, 20, 4, operations.toArray(new String[0])))
 					.setTranslationFunc(s -> I18n.format(IIReference.DATA_KEY+"function."+s));
