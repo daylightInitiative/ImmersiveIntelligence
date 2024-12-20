@@ -6,6 +6,7 @@ import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeAccessor;
 
 import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDataLetterList.ArrowsAlignment;
 import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDataLetterList;
+import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDataLetterList.DropdownPosition;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
 
 /**
@@ -30,7 +31,7 @@ public class GuiDataEditorAccessor extends GuiDataEditor<DataTypeAccessor>
 	{
 		super.init();
 
-		this.buttonVariable = addButton(new GuiButtonDataLetterList(buttonList.size(), x+width-130, y+25, false, c, ArrowsAlignment.LEFT));
+		this.buttonVariable = addButton(new GuiButtonDataLetterList(buttonList.size(), x+width-130, y+25, false, c, ArrowsAlignment.LEFT, DropdownPosition.RIGHT));
 	}
 
 	@Override
