@@ -96,7 +96,7 @@ public class GuiDataInputMachineEdit extends GuiDataInputMachineBase
 		}
 
 		//Letter Change Buttons
-		buttonLetter = addButton(new GuiButtonDataLetterList(buttonList.size(), guiLeft+42-10, guiTop+14, false, variableToEdit, ArrowsAlignment.LEFT));
+		buttonLetter = addButton(new GuiButtonDataLetterList(buttonList.size(), guiLeft+42-10, guiTop+14, false, variableToEdit, ArrowsAlignment.LEFT, GuiButtonDataLetterList.DropdownPosition.BELOW));
 		buttonLetter.setAvoidGetter(() -> list);
 
 	}

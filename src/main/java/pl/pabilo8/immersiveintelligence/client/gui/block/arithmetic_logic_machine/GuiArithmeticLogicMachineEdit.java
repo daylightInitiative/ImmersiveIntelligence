@@ -72,7 +72,7 @@ public class GuiArithmeticLogicMachineEdit extends GuiArithmeticLogicMachineBase
 		this.editor.setBounds(guiLeft+35, guiTop+46, 131, 80);
 
 		//Letter Change Buttons
-		buttonLetter = addButton(new GuiButtonDataLetterList(buttonList.size(), guiLeft+42-10, guiTop+14, false, variableToEdit, ArrowsAlignment.LEFT));
+		buttonLetter = addButton(new GuiButtonDataLetterList(buttonList.size(), guiLeft+42-10, guiTop+14, false, variableToEdit, ArrowsAlignment.LEFT, GuiButtonDataLetterList.DropdownPosition.BELOW));
 		buttonLetter.setAvoidGetter(this::getPacketFromPage);
 
 	}

@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 /**
  * @author Pabilo8
  * @since 07.09.2021
+ * @author Avalon
+ * @since 19.12.2024
  */
 public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 {
@@ -88,10 +90,9 @@ public class GuiDataEditorExpression extends GuiDataEditor<DataTypeExpression>
 		if(page==0)
 		{
 			//add the lower-placed buttons first, so rendering (lack of) order is happy
-			dropdownLetterPicker = addButton(new GuiButtonDataLetterList(buttonList.size(), x+2, y+2+24+14, true, dataType.getRequiredVariable(), ArrowsAlignment.RIGHT));
+			dropdownLetterPicker = addButton(new GuiButtonDataLetterList(buttonList.size(), x+2, y+2+24+14, true, dataType.getRequiredVariable(), ArrowsAlignment.LEFT, GuiButtonDataLetterList.DropdownPosition.RIGHT));
 
-			dropdownOperationPicker = addButton(new GuiButtonDropdownList(buttonList.size(), x+2, y+14, width-4, 20, 4, operations.toArray(new String[0])))
-					.setTranslationFunc(s -> I18n.format(IIReference.DATA_KEY+"function."+s));
+			dropdownOperationPicker = addButton(new GuiButtonDropdownList(buttonList.size(), x+2, y+14, width-4, 20, 4, operations.toArray(new String[0])));
 			dropdownOperationPicker.selectedEntry = operations.indexOf(dataType.getMeta().name());
 			dropdownOperationPicker.enabled = !operations.isEmpty();
 		}
