@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  * @author Avalon
  * @since 19.12.2024
  */
-public class GuiButtonDataLetterListLow extends GuiButton
+public class GuiButtonDataLetterList extends GuiButton
 {
 	private final ArrowsAlignment arrows;
 	@Nullable
@@ -36,7 +36,7 @@ public class GuiButtonDataLetterListLow extends GuiButton
 	@Nullable
 	private Supplier<DataPacket> avoidGetter;
 
-	public GuiButtonDataLetterListLow(int buttonId, int x, int y, boolean hasEmpty, char currentValue, ArrowsAlignment arrows)
+	public GuiButtonDataLetterList(int buttonId, int x, int y, boolean hasEmpty, char currentValue, ArrowsAlignment arrows)
 	{
 		super(buttonId, x, y, arrows==ArrowsAlignment.NONE?18: 28, 18, "");
 		this.hasEmpty = hasEmpty;
