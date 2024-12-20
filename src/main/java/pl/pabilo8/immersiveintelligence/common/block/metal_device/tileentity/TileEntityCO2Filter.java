@@ -283,12 +283,10 @@ public class TileEntityCO2Filter extends TileEntityIEBase implements ITickable, 
 		}
 	}
 
-	public static class CO2ItemHandler implements IItemHandlerModifiable
-	{
+	public static class CO2ItemHandler implements IItemHandlerModifiable {
 		TileEntityCO2Filter tile;
 
-		public CO2ItemHandler(TileEntityCO2Filter tile)
-		{
+		public CO2ItemHandler(TileEntityCO2Filter tile) {
 			this.tile = tile;
 		}
 
@@ -323,6 +321,14 @@ public class TileEntityCO2Filter extends TileEntityIEBase implements ITickable, 
 		public int getSlotLimit(int slot) {
 			IItemHandler handlerBelow = getHandlerBelow();
 			return handlerBelow != null ? handlerBelow.getSlotLimit(slot) : 64;
+		}
+
+		@Override
+		public void setStackInSlot(int slot, ItemStack stack) {
+			IItemHandlerModifiable handlerBelow = (IItemHandlerModifiable) getHandlerBelow();
+			if (handlerBelow != null) {
+				handlerBelow.setStackInSlot(slot, stack);
+			}
 		}
 
 		@Nullable
