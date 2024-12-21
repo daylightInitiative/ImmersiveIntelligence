@@ -31,9 +31,11 @@ import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonDro
 import pl.pabilo8.immersiveintelligence.client.gui.elements.buttons.GuiButtonSwitch;
 import pl.pabilo8.immersiveintelligence.client.gui.elements.label.GuiLabelNoShadow;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
+import pl.pabilo8.immersiveintelligence.common.IIUtils;
 import pl.pabilo8.immersiveintelligence.common.block.multiblock.metal_multiblock0.tileentity.TileEntityPacker;
 import pl.pabilo8.immersiveintelligence.common.gui.ContainerPacker;
 import pl.pabilo8.immersiveintelligence.common.util.IIColor;
+import pl.pabilo8.immersiveintelligence.common.util.IIMath;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
 
 import javax.annotation.Nonnull;
@@ -248,7 +250,12 @@ public class GuiPacker extends GuiIEContainerBase
 		drawTexturedModalRect(guiLeft+81, guiTop+122, 0, 122, 176, 89);
 		drawTexturedModalRect(guiLeft+256, guiTop, 176, 122, 80, 122);
 
-		//draw paper
+		// Draw the backdrop for the power bar
+		drawTexturedModalRect(guiLeft + 278, guiTop + 19, 176, 0, 14, 84);
+
+		// Draw the power bar on the left side of the GUI
+		float powerRatio = tile.energyStorageUpgrade.getEnergyStored() / (float) tile.energyStorageUpgrade.getMaxEnergyStored();
+		IIClientUtils.drawPowerBar(guiLeft + 280, guiTop + 21, 10, 80, powerRatio);
 
 		//draw side / resource display
 		sideDisplay.draw(mx, my);
@@ -278,7 +285,6 @@ public class GuiPacker extends GuiIEContainerBase
 	public void drawScreen(int mx, int my, float partial)
 	{
 		super.drawScreen(mx, my, partial);
-
 		this.renderHoveredToolTip(mx, my);
 
 		ArrayList<String> tooltip = new ArrayList<>();
@@ -298,8 +304,16 @@ public class GuiPacker extends GuiIEContainerBase
 			tooltip.add(I18n.format("desc.immersiveintelligence.metal_multiblock1.packer.side_output"));
 		else if(switchDirection!=null&&switchDirection.isMouseOver())
 			tooltip.add(I18n.format("desc.immersiveintelligence.metal_multiblock1.packer.switch_direction"));
+		if (IIMath.isPointInRectangle(280, 23, 287, 100, mx - guiLeft, my - guiTop))
+		{
+			if(tile.hasUpgrade(IIContent.UPGRADE_PACKER_ENERGY))
+			{
+				tooltip.add("Internal Power Storage: "+tile.energyStorageUpgrade.getEnergyStored()+" / "+tile.energyStorageUpgrade.getMaxEnergyStored()+" IF");
+			}
+		}
 		else if(buttonRepeat.isMouseOver())
 			tooltip.add(buttonRepeat.state?
+
 					I18n.format("desc.immersiveintelligence.metal_multiblock1.packer.mode_iteration"):
 					I18n.format("desc.immersiveintelligence.metal_multiblock1.packer.mode_single"));
 
