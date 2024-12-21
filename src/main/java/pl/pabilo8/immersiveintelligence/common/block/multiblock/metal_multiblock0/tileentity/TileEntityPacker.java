@@ -78,6 +78,7 @@ public class TileEntityPacker extends TileEntityMultiblockIIGeneric<TileEntityPa
 	public int clientUpgradeProgress = 0;
 	public int processTime = 0;
 
+
 	public ArrayList<PackerTask> tasks = new ArrayList<>();
 
 	public IItemHandler containerHandler = new IEInventoryHandler(1, this, 0, true, true);
@@ -287,25 +288,23 @@ public class TileEntityPacker extends TileEntityMultiblockIIGeneric<TileEntityPa
 			TileEntity te = this.world.getTileEntity(pos);
 			EnumFacing outputFacing = mirrored?this.facing.rotateYCCW(): this.facing.rotateY();
 
-			if(te!=null)
-			{
-				if(hasUpgrade(IIContent.UPGRADE_PACKER_FLUID))
-				{
-					if(te.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, outputFacing))
-					{
-						IFluidHandler cap = te.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, outputFacing);
-						assert cap!=null;
+			if (te != null && hasUpgrade(IIContent.UPGRADE_PACKER_FLUID)) {
+				if (te.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, outputFacing)) {
+					IFluidHandler cap = te.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, outputFacing);
+					assert cap != null;
 
-						for(FluidStack fluid : fluidTank.fluids)
-						{
-							FluidStack fs = fluidTank.drain(fluid.copy(), false);
-							assert fs!=null;
-
-							fs.amount -= cap.fill(fs, false);
-							fluidTank.fill(fs, false);
+					for (FluidStack fluid : fluidTank.fluids) {
+						FluidStack fs = fluidTank.drain(fluid.copy(), false);
+						if (fs != null) {
+							int filled = cap.fill(fs, true);
+							if (filled > 0) {
+								fluidTank.drain(filled, true);
+								update = true;
+							}
 						}
 					}
 				}
+
 				else if(hasUpgrade(IIContent.UPGRADE_PACKER_ENERGY))
 				{
 					if(te.hasCapability(CapabilityEnergy.ENERGY, outputFacing))
@@ -435,17 +434,19 @@ public class TileEntityPacker extends TileEntityMultiblockIIGeneric<TileEntityPa
 				return getPOI("energy");
 			case ITEM_INPUT:
 			case FLUID_INPUT:
+			case REDSTONE_INPUT:
+			case DATA_INPUT:
 				return getPOI("input");
+			case ENERGY_OUTPUT:
+				return getPOI("energy_output");
 			case ITEM_OUTPUT:
 			case FLUID_OUTPUT:
-			case ENERGY_OUTPUT:
+			case REDSTONE_OUTPUT:
+			case DATA_OUTPUT:
 				return getPOI("output");
-			case REDSTONE_INPUT:
-				return getPOI("redstone");
-			case DATA_INPUT:
-				return getPOI("data");
+			default:
+				return new int[0];
 		}
-		return new int[0];
 	}
 
 	@Override
