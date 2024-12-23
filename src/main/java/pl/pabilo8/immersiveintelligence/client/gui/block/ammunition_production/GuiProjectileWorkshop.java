@@ -61,12 +61,12 @@ public class GuiProjectileWorkshop extends GuiAmmunitionBase<TileEntityProjectil
 
 			//Ammo types
 			String[] names = AmmoRegistry.getAllAmmoItems().stream().map(IAmmoTypeItem::getName).toArray(String[]::new);
-			bulletList = new GuiButtonDropdownList(buttonList.size(), guiLeft+122, guiTop+20-6, 136, 12, 6, names);
+			bulletList = new GuiButtonDropdownList(buttonList.size(), guiLeft+122, guiTop+20-6, 68, 12, 6, names);
 			bulletList.setTranslationFunc(s -> I18n.format("item.immersiveintelligence."+s.toLowerCase()+".bullet.name"));
 
 			//Core types
 			String[] cores = Arrays.stream(tile.producedAmmo.getAllowedCoreTypes()).map(CoreType::getName).toArray(String[]::new);
-			typeList = new GuiButtonDropdownList(buttonList.size(), guiLeft+122, guiTop+20+32-8-7, 136, 12, 3, cores);
+			typeList = new GuiButtonDropdownList(buttonList.size(), guiLeft+122, guiTop+20+32-8-7, 68, 12, 3, cores);
 			typeList.setTranslationFunc(s -> I18n.format(IIReference.DESCRIPTION_KEY+"bullet_core_type."+s));
 			typeList.selectedEntry = Arrays.asList(cores).indexOf(tile.coreType.getName());
 			addButton(typeList);
