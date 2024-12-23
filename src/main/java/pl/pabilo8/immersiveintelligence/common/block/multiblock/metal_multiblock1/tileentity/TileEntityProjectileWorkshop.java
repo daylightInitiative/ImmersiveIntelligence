@@ -7,10 +7,13 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.IItemHandler;
@@ -43,6 +46,7 @@ import pl.pabilo8.immersiveintelligence.common.util.upgrade_system.IUpgradeStora
 import pl.pabilo8.immersiveintelligence.common.util.upgrade_system.UpgradeStorage;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -210,6 +214,27 @@ public class TileEntityProjectileWorkshop extends TileEntityMultiblockProduction
 		}
 		return new int[0];
 	}
+
+	@Override
+	public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
+	{
+		if (pos == 22 && capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
+			return true;
+		return super.hasCapability(capability, facing);
+	}
+
+	@Override
+	public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
+	{
+		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY && pos == 22)
+		{
+			TileEntityProjectileWorkshop master = master();
+			return (T) master.tanksFiller;
+		}
+		return super.getCapability(capability, facing);
+	}
+
+
 
 	@Override
 	public boolean isStackValid(int slot, ItemStack stack)

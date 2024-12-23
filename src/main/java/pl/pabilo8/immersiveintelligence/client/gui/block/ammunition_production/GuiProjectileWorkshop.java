@@ -169,7 +169,7 @@ public class GuiProjectileWorkshop extends GuiAmmunitionBase<TileEntityProjectil
 			GlStateManager.enableBlend();
 			ClientUtils.handleGuiTank(tile.tanksFiller, guiLeft+6+44+22-4, guiTop+15+3, 49, 20, 62, 210, 49, 20, mouseX, mouseY, TEXTURE.toString(), null);
 			GlStateManager.disableBlend();
-
+/*
 			AmmoComponent component = tile.componentInside.getComponent();
 			if(component!=null)
 			{
@@ -180,7 +180,7 @@ public class GuiProjectileWorkshop extends GuiAmmunitionBase<TileEntityProjectil
 				fontRenderer.drawString(TextFormatting.ITALIC+I18n.format(IIReference.DESCRIPTION_KEY+"bullet_type."+component.getRole().getName())+TextFormatting.RESET,
 						guiLeft+122, guiTop+5+11, IIReference.COLOR_H2.getPackedRGB());
 			}
-
+*/
 			RenderHelper.enableGUIStandardItemLighting();
 			if(tile.currentProcess!=null)
 				itemRender.renderItemIntoGUI(tile.currentProcess.recipe.getEffect(), guiLeft+6+64+21+2, guiTop+9+32+4);
