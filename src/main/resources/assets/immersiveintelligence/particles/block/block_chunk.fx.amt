@@ -1,7 +1,7 @@
 {
   "type": "ParticleVanilla",
   "textures": "minecraft:blocks/dirt",
-  "life_time": 80,
+  "max_lifetime": 80,
   "draw_stage": "custom",
   "aabb": 0.0625,
   "programs": [

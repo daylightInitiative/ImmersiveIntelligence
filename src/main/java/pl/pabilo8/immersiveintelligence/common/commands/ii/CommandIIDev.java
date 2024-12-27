@@ -524,7 +524,9 @@ public class CommandIIDev extends CommandTreeHelp
 					}
 
 					//Send the packet, so clients can spawn the particle on their side
-					IIPacketHandler.sendToClient(new MessageParticleEffect(args[1], sender.getEntityWorld(), pos, motion));
+					IIPacketHandler.sendToClient(new MessageParticleEffect(args[1], sender.getEntityWorld(),
+							pos, motion, 0, 0, null
+					));
 					sender.sendMessage(new TextComponentString(String.format("Particle %s created!", args[1])));
 				}
 				break;

@@ -43,7 +43,6 @@ import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Vehicles
 import pl.pabilo8.immersiveintelligence.common.IISounds;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
 import pl.pabilo8.immersiveintelligence.common.network.messages.MessageEntityNBTSync;
-import pl.pabilo8.immersiveintelligence.common.network.messages.MessageParticleEffect;
 import pl.pabilo8.immersiveintelligence.common.util.IIDamageSources;
 import pl.pabilo8.immersiveintelligence.common.util.IIMath;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
@@ -592,7 +591,7 @@ public class EntityMotorbike extends Entity implements IVehicleMultiPart, IEntit
 		{
 			if(hasFuel())
 				world.newExplosion(null, posX, posY, posZ, tank.getFluidAmount()/12000f*4, false, false);
-			IIPacketHandler.sendToClient(new MessageParticleEffect("motorbike_explosion", world, new Vec3d(this.getEntityId(), 0, 0)));
+			//TODO: 23.12.2024 explosion
 			setDead();
 		}
 		else

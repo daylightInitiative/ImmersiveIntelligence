@@ -1,4 +1,4 @@
-package pl.pabilo8.immersiveintelligence.client.fx.builder;
+package pl.pabilo8.immersiveintelligence.client.fx.factories;
 
 import blusunrize.immersiveengineering.client.ClientUtils;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -13,6 +13,7 @@ import pl.pabilo8.immersiveintelligence.common.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
 import javax.annotation.Nonnull;
+import javax.vecmath.Vector2f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -22,22 +23,22 @@ import java.util.function.BiFunction;
  * @ii-approved 0.3.1
  * @since 13.05.2024
  */
-public class ParticleVanillaBuilder extends ParticleBuilder<ParticleVanilla> implements IReloadableModelContainer<ParticleVanillaBuilder>
+public class ParticleVanillaFactory extends ParticleFactory<ParticleVanilla> implements IReloadableModelContainer<ParticleVanillaFactory>
 {
 	private static ResLoc EMPTY_TEXTURE = ResLoc.of(IIReference.RES_TEXTURES, "empty").withExtension(ResLoc.EXT_PNG);
 
 	List<ResourceLocation> textures = new ArrayList<>();
 	public TextureAtlasSprite[] compiledTextures;
 
-	public ParticleVanillaBuilder(BiFunction<World, Vec3d, ParticleVanilla> particleConstructor)
+	public ParticleVanillaFactory(BiFunction<World, Vec3d, ParticleVanilla> particleConstructor)
 	{
 		super(particleConstructor);
 	}
 
 	@Override
-	public void parseBuilderFromJSON(EasyNBT nbt)
+	public void parseNBT(EasyNBT nbt)
 	{
-		super.parseBuilderFromJSON(nbt);
+		super.parseNBT(nbt);
 		if(nbt.hasKey("textures"))
 		{
 			nbt.streamList(NBTTagString.class, "textures")
@@ -47,7 +48,7 @@ public class ParticleVanillaBuilder extends ParticleBuilder<ParticleVanilla> imp
 		}
 	}
 
-	public ParticleVanillaBuilder addTexture(ResourceLocation texture)
+	public ParticleVanillaFactory addTexture(ResourceLocation texture)
 	{
 		textures.add(texture);
 		return this;
@@ -55,9 +56,9 @@ public class ParticleVanillaBuilder extends ParticleBuilder<ParticleVanilla> imp
 
 	@Nonnull
 	@Override
-	public ParticleVanilla buildParticle(Vec3d position, Vec3d motion, Vec3d direction)
+	public ParticleVanilla create(Vec3d position, Vec3d motion, Vector2f rotation)
 	{
-		ParticleVanilla particle = super.buildParticle(position, motion, direction);
+		ParticleVanilla particle = super.create(position, motion, rotation);
 
 		if(compiledTextures.length==0)
 			particle.setTextures(new TextureAtlasSprite[]{ClientUtils.getSprite(EMPTY_TEXTURE)});
