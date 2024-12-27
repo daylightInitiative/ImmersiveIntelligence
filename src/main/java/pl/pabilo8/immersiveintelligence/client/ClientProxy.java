@@ -57,6 +57,7 @@ import pl.pabilo8.immersiveintelligence.api.ammo.AmmoRegistry;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.IAmmoTypeItem;
 import pl.pabilo8.immersiveintelligence.api.utils.IUpgradableMachine;
 import pl.pabilo8.immersiveintelligence.client.fx.IIParticles;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
 import pl.pabilo8.immersiveintelligence.client.gui.block.GuiUpgrade;
 import pl.pabilo8.immersiveintelligence.client.manual.IIManualCategory;
 import pl.pabilo8.immersiveintelligence.client.manual.categories.*;
@@ -341,6 +342,7 @@ public class ClientProxy extends CommonProxy
 		//Load particle models
 		IIParticles.preInit();
 		IIParticles.init();
+		ParticleRegistry.loadAllParticleFiles();
 
 		//Register entity renderers
 		registerEntityRenderer(EntitySkyCrate.class, SkyCrateRenderer::new);

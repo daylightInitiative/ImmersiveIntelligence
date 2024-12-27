@@ -1,4 +1,4 @@
-package pl.pabilo8.immersiveintelligence.client.fx.builder;
+package pl.pabilo8.immersiveintelligence.client.fx.factories;
 
 import blusunrize.immersiveengineering.client.ClientUtils;
 import blusunrize.immersiveengineering.common.util.Utils;
@@ -12,7 +12,7 @@ import net.minecraftforge.client.model.obj.OBJModel;
 import net.minecraftforge.client.model.obj.OBJModel.*;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import pl.pabilo8.immersiveintelligence.client.fx.prefab.ParticleAbstractModel;
+import pl.pabilo8.immersiveintelligence.client.fx.particles.ParticleAbstractModel;
 import pl.pabilo8.immersiveintelligence.client.render.IReloadableModelContainer;
 import pl.pabilo8.immersiveintelligence.client.util.amt.IIAnimationLoader;
 import pl.pabilo8.immersiveintelligence.client.util.amt.IIAnimationUtils;
@@ -23,6 +23,7 @@ import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.vecmath.Vector2f;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -35,7 +36,7 @@ import java.util.stream.IntStream;
  * @since 07.04.2024
  */
 @SideOnly(Side.CLIENT)
-public class ParticleModelBuilder<T extends ParticleAbstractModel> extends ParticleBuilder<T> implements IReloadableModelContainer<ParticleModelBuilder<T>>
+public class ParticleModelFactory<T extends ParticleAbstractModel> extends ParticleFactory<T> implements IReloadableModelContainer<ParticleModelFactory<T>>
 {
 	/**
 	 * Resource Locations of the models used by this particle
@@ -50,15 +51,23 @@ public class ParticleModelBuilder<T extends ParticleAbstractModel> extends Parti
 	 */
 	private ModelMode mode = null;
 
-	public ParticleModelBuilder(BiFunction<World, Vec3d, T> particleConstructor)
+	public ParticleModelFactory(BiFunction<World, Vec3d, T> particleConstructor)
 	{
 		super(particleConstructor);
 	}
 
 	@Override
-	public void parseBuilderFromJSON(EasyNBT nbt)
+	public ParticleFactory<T> withParent(ParticleFactory<?> parentFactory)
 	{
-		super.parseBuilderFromJSON(nbt);
+		if(parentFactory instanceof ParticleModelFactory)
+			this.modelLocations.addAll(((ParticleModelFactory<?>)parentFactory).modelLocations);
+		return super.withParent(parentFactory);
+	}
+
+	@Override
+	public void parseNBT(EasyNBT nbt)
+	{
+		super.parseNBT(nbt);
 		if(nbt.hasKey("model"))
 			withModel(IIReference.RES_PARTICLE_MODEL.with(nbt.getString("model")).withExtension(ResLoc.EXT_OBJ));
 		else if(nbt.hasKey("models"))
@@ -87,7 +96,7 @@ public class ParticleModelBuilder<T extends ParticleAbstractModel> extends Parti
 	 * @param modelLocation Resource Location of the model
 	 * @return this
 	 */
-	public ParticleModelBuilder<T> withModel(ResLoc modelLocation)
+	public ParticleModelFactory<T> withModel(ResLoc modelLocation)
 	{
 		if(errorInvalidModelMode(modelLocation, ModelMode.SINGLE_MODEL))
 			return this;
@@ -104,7 +113,7 @@ public class ParticleModelBuilder<T extends ParticleAbstractModel> extends Parti
 	 * @param modelLocation Resource Locations of the model(s)
 	 * @return this
 	 */
-	public ParticleModelBuilder<T> withModelVariant(ResLoc... modelLocation)
+	public ParticleModelFactory<T> withModelVariant(ResLoc... modelLocation)
 	{
 		if(errorInvalidModelMode(modelLocation[0], ModelMode.MULTI_MODEL))
 			return this;
@@ -122,7 +131,7 @@ public class ParticleModelBuilder<T extends ParticleAbstractModel> extends Parti
 	 * @param lastID        Last index number
 	 * @return this
 	 */
-	public ParticleModelBuilder<T> withModelVariant(ResLoc modelLocation, int firstID, int lastID)
+	public ParticleModelFactory<T> withModelVariant(ResLoc modelLocation, int firstID, int lastID)
 	{
 		return withModelVariant(IntStream.range(firstID, lastID).mapToObj(i -> ResLoc.of(modelLocation, i)).toArray(ResLoc[]::new));
 	}
@@ -148,9 +157,9 @@ public class ParticleModelBuilder<T extends ParticleAbstractModel> extends Parti
 
 	@Nonnull
 	@Override
-	public T buildParticle(Vec3d position, Vec3d motion, Vec3d direction)
+	public T create(Vec3d position, Vec3d motion, Vector2f rotation)
 	{
-		T particle = super.buildParticle(position, motion, direction);
+		T particle = super.create(position, motion, rotation);
 
 		if(loadedModels.isEmpty())
 			return particle;

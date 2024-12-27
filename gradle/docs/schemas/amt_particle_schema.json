@@ -14,8 +14,12 @@
         "type": "string"
       }
     },
-    "life_time": {
-      "description": "Life time of this particle in ticks",
+    "max_lifetime": {
+      "description": "Maximum life time of this particle in ticks",
+      "type": "integer"
+    },
+    "lifetime": {
+      "description": "Starting life time of this particle in ticks",
       "type": "integer"
     },
     "draw_stage": {
@@ -85,5 +89,5 @@
       "description": "Particles spawned after death of this one"
     }
   },
-  "required": ["type", "life_time", "draw_stage"]
+  "required": ["type", "max_lifetime", "draw_stage"]
 }

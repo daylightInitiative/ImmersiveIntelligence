@@ -120,6 +120,10 @@ public class IIConfigHandler
 			public static int maxPenetratedBlocks = 64;
 
 			@RangeInt(min = 0)
+			@Comment({"Max amount of particles that can exist within the particle system."})
+			public static int maxAllowedParticles = 3000;
+
+			@RangeInt(min = 0)
 			@Comment({"Max amount of particles that will be simulated."})
 			public static int maxSimulatedParticles = 2000;
 

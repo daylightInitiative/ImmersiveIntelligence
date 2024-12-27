@@ -21,7 +21,7 @@ import java.util.function.Function;
  * @author Pabilo8
  * @since 06.04.2024
  */
-public enum DrawStages implements ISerializableEnum
+public enum ParticleDrawStages implements ISerializableEnum
 {
 	/**
 	 * Normal particles render just like minecraft's default particles
@@ -53,7 +53,7 @@ public enum DrawStages implements ISerializableEnum
 	/**
 	 * Same as CUSTOM, but with normal maps, use with solid 3D models
 	 */
-	CUSTOM_SOLID(GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, ParticleUtils.PARTICLE_SOLID, false, true, TextureMap.LOCATION_BLOCKS_TEXTURE);
+	CUSTOM_SOLID(GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, IIParticleUtils.PARTICLE_SOLID, false, true, TextureMap.LOCATION_BLOCKS_TEXTURE);
 
 	final DestFactor destFactor;
 	final VertexFormat vertexFormat;
@@ -63,7 +63,7 @@ public enum DrawStages implements ISerializableEnum
 	final Function<Float, float[]> shaderParameters;
 	public final boolean requiresNormals;
 
-	DrawStages(DestFactor destFactor, VertexFormat vertexFormat, boolean renderThroughBlocks, boolean applyLighting, @Nullable ResourceLocation textureRes)
+	ParticleDrawStages(DestFactor destFactor, VertexFormat vertexFormat, boolean renderThroughBlocks, boolean applyLighting, @Nullable ResourceLocation textureRes)
 	{
 		this.destFactor = destFactor;
 		this.vertexFormat = vertexFormat;
@@ -83,7 +83,7 @@ public enum DrawStages implements ISerializableEnum
 	 * @param shader           shader to use
 	 * @param shaderParameters parameters for the shader
 	 */
-	DrawStages(DrawStages other, Shaders shader, Function<Float, float[]> shaderParameters)
+	ParticleDrawStages(ParticleDrawStages other, Shaders shader, Function<Float, float[]> shaderParameters)
 	{
 		this.destFactor = other.destFactor;
 		this.vertexFormat = other.vertexFormat;

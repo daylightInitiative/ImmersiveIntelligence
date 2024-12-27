@@ -7,6 +7,7 @@ import com.google.gson.JsonStreamParser;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResource;
+import net.minecraft.world.gen.structure.template.Template;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
@@ -22,7 +23,7 @@ import java.io.InputStreamReader;
  */
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class FileUtils
+public class IIFileUtils
 {
 	/**
 	 * Reads a file from the given resource location.
@@ -82,21 +83,21 @@ public class FileUtils
 		}
 	}
 	//TODO: 19.05.2024 re-add
-	/*
-	 *//**
- * Reads a block template file from the given resource location.
- *
- * @param res Resource location of the file
- * @return The content of the file
- * @throws ResourceException Thrown when the file could not be loaded
- *//*
-	public static Template readTemplateFile(ResLoc res) throws ResourceException
-	{
-
-	}*/
 
 	/**
-	 * Thrown when a resource could not be loaded.
+	 * Reads a block template file from the given resource location.
+	 *
+	 * @param res Resource location of the file
+	 * @return The content of the file
+	 * @throws ResourceException Thrown when the file could not be loaded
+	 **/
+	public static Template readTemplateFile(ResLoc res) throws ResourceException
+	{
+		return null;
+	}
+
+	/**
+	 * Thrown when a resource couldn't be loaded.
 	 */
 	public static class ResourceException extends Exception
 	{
