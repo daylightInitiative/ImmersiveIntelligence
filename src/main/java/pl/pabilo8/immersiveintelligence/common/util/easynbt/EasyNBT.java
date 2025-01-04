@@ -791,14 +791,14 @@ public class EasyNBT extends Constants.NBT
 	 */
 	public Vector2f getVector2f(String key)
 	{
-		NBTTagList pos = getList(key, TAG_DOUBLE);
+		NBTTagList pos = getList(key, TAG_FLOAT);
 
 		if(pos.tagCount() > 1)
 		{
-			NBTTagDouble x = (NBTTagDouble)pos.get(0);
-			NBTTagDouble y = (NBTTagDouble)pos.get(1);
+			NBTTagFloat x = (NBTTagFloat)pos.get(0);
+			NBTTagFloat y = (NBTTagFloat)pos.get(1);
 
-			return new Vector2f((float)x.getDouble(), (float)y.getDouble());
+			return new Vector2f(x.getFloat(), y.getFloat());
 		}
 
 		//only if key is present

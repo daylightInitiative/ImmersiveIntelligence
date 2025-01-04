@@ -145,10 +145,21 @@ public class PenetrationRegistry
 		registerMaterial(Material.SAND, new PenetrationHandler(PenetrationHardness.GROUND, 1f, 150, PARTICLE_DEBRIS_PEBBLE, IISounds.hitSand));
 
 		//wood
-		registerOre("planksWood",
+		registerOre("plankWood",
 				new PenetrationHandler(PenetrationHardness.WOOD, 0.8f, 100, PARTICLE_DEBRIS_PLANK, IISounds.hitWood));
+		registerOre("stairWood",
+				new PenetrationHandler(PenetrationHardness.WOOD, 0.8f, 100, PARTICLE_DEBRIS_PLANK, IISounds.hitWood));
+		registerOre("slabWood",
+				new PenetrationHandler(PenetrationHardness.WOOD, 0.8f, 100, PARTICLE_DEBRIS_PLANK, IISounds.hitWood));
+		registerOre("plankTreatedWood",
+				new PenetrationHandler(PenetrationHardness.WOOD, 0.8f, 100, PARTICLE_DEBRIS_PLANK, IISounds.hitWood));
+		registerOre("stairTreatedWood",
+				new PenetrationHandler(PenetrationHardness.WOOD, 0.8f, 100, PARTICLE_DEBRIS_PLANK, IISounds.hitWood));
+		registerOre("slabTreatedWood",
+				new PenetrationHandler(PenetrationHardness.WOOD, 0.8f, 100, PARTICLE_DEBRIS_PLANK, IISounds.hitWood));
+		//TODO: 03.01.2025 custom model for wooden logs
 		registerOre("logWood",
-				new PenetrationHandler(PenetrationHardness.WOOD, 1f, 250, PARTICLE_DEBRIS_PLANK, IISounds.hitWood));
+				new PenetrationHandler(PenetrationHardness.WOOD, 1f, 250, PARTICLE_DEBRIS_BRICK, IISounds.hitWood));
 
 		//Glass
 		registerOre("paneGlass", new PenetrationHandler(PenetrationHardness.FRAGILE, 0.125f, 20, PARTICLE_DEBRIS_GLASS, SoundEvents.BLOCK_GLASS_BREAK, null));
@@ -161,8 +172,10 @@ public class PenetrationRegistry
 		//leaves
 		registerMaterial(new Material[]{Material.LEAVES, Material.VINE},
 				new PenetrationHandler(PenetrationHardness.FRAGILE, 0.5f, 300, PARTICLE_DEBRIS_BRANCH_LEAF, IISounds.impactFoliage, null));
+		registerState(state -> state.getBlock()==Blocks.LEAVES&&state.getBlock().getMetaFromState(state)==2, //spruce leaves
+				new PenetrationHandler(PenetrationHardness.FRAGILE, 0.5f, 300, PARTICLE_DEBRIS_BRANCH_NEEDLE, IISounds.impactFoliage, null));
 		registerMaterial(new Material[]{Material.CACTUS},
-				new PenetrationHandler(PenetrationHardness.FRAGILE, 0.8f, 100, PARTICLE_DEBRIS_BRANCH_LEAF, IISounds.impactFoliage, null));
+				new PenetrationHandler(PenetrationHardness.FRAGILE, 0.8f, 100, PARTICLE_DEBRIS_BRANCH_CACTUS, IISounds.impactFoliage, null));
 
 
 		//grass, crops, etc.

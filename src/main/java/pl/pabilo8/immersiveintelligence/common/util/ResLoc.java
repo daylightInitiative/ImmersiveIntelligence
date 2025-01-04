@@ -103,6 +103,11 @@ public class ResLoc extends ResourceLocation
 		return new ResLoc(res.getResourceDomain(), res.getResourcePath());
 	}
 
+	public static ResLoc of(String resString)
+	{
+		return of(new ResourceLocation(resString));
+	}
+
 	public ResLoc with(Object... elements)
 	{
 		return of(this, elements);

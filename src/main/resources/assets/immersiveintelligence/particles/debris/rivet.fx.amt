@@ -1,9 +1,12 @@
 {
   "type": "ParticleModel",
-  "models": ["rivet1.obj", "rivet2.obj", "rivet3.obj"],
-  "life_time": 80,
-  "draw_stage": "custom_additive",
+  "models": ["debris/rivet/rivet1.obj", "debris/rivet/rivet2.obj", "debris/rivet/rivet3.obj"],
+  "max_lifetime": 60,
+  "draw_stage": "custom",
+  "aabb": 0.25,
   "programs": [
-    "shockwave_transition"
+    "gravity(1.0,0.08)",
+    "dust_transition",
+    "rotation(1,1)"
   ]
 }

@@ -14,10 +14,7 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import pl.pabilo8.immersiveintelligence.client.fx.factories.ParticleFactory;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleDrawStages;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProgram;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProperties;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleSystem;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.*;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
 import javax.annotation.Nonnull;
@@ -27,7 +24,6 @@ import javax.vecmath.Vector3f;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -107,8 +103,8 @@ public abstract class AbstractParticle implements INBTSerializable<NBTTagCompoun
 	protected Set<ParticleProgram> programs = DEFAULT_PROGRAMS;
 
 	//--- Chaining Fields ---//
-	private Multimap<Integer, Consumer<? super AbstractParticle>> scheduledParticles;
-	private Set<Consumer<? super AbstractParticle>> chainedParticles;
+	private Multimap<Integer, ParticleOffspring<?>> scheduledParticles;
+	private Set<ParticleOffspring<? super AbstractParticle>> chainedParticles;
 
 	//--- Drawing Related Fields ---//
 	/**
@@ -148,8 +144,8 @@ public abstract class AbstractParticle implements INBTSerializable<NBTTagCompoun
 			move();
 
 			if(scheduledParticles!=null)
-				for(Consumer<? super AbstractParticle> consumer : scheduledParticles.get(this.lifeTime))
-					consumer.accept(this);
+				for(ParticleOffspring<?> consumer : scheduledParticles.get(this.lifeTime))
+					consumer.spawn(this);
 
 			this.lifeTime++;
 		}
@@ -203,10 +199,10 @@ public abstract class AbstractParticle implements INBTSerializable<NBTTagCompoun
 	 *
 	 * @param chained particles to be spawned
 	 */
-	public <T extends AbstractParticle> void setChainedParticles(Set<Consumer<T>> chained)
+	public <T extends AbstractParticle> void setChainedParticles(Set<ParticleOffspring<T>> chained)
 	{
 		//java generics can go to hell
-		this.chainedParticles = chained.stream().map(tConsumer -> (Consumer<AbstractParticle>)tConsumer).collect(Collectors.toSet());
+		this.chainedParticles = chained.stream().map(tConsumer -> (ParticleOffspring<AbstractParticle>)tConsumer).collect(Collectors.toSet());
 	}
 
 	/**
@@ -214,13 +210,11 @@ public abstract class AbstractParticle implements INBTSerializable<NBTTagCompoun
 	 *
 	 * @param delayed map of time in ticks and particles to be spawned
 	 */
-	public <T extends AbstractParticle> void setScheduledParticles(Multimap<Integer, Consumer<T>> delayed)
+	public <T extends AbstractParticle> void setScheduledParticles(Multimap<Integer, ParticleOffspring<T>> delayed)
 	{
 		this.scheduledParticles = HashMultimap.create();
 		//java generics can go to hell mk.2
-		delayed.forEach((integer, tConsumer) ->
-				this.scheduledParticles.put(integer, iiParticle -> tConsumer.accept((T)iiParticle))
-		);
+		delayed.forEach(this.scheduledParticles::put);
 	}
 
 	//--- Getters and Setters ---//
@@ -340,7 +334,7 @@ public abstract class AbstractParticle implements INBTSerializable<NBTTagCompoun
 
 			case DRAW_STAGE:
 				return drawStage;
-			case BOUNDING_BOX:
+			case AABB:
 				return boundingBox;
 		}
 		return key.getDefault();
@@ -387,7 +381,7 @@ public abstract class AbstractParticle implements INBTSerializable<NBTTagCompoun
 			case DRAW_STAGE:
 				this.drawStage = (ParticleDrawStages)value;
 				break;
-			case BOUNDING_BOX:
+			case AABB:
 				this.baseBoundingBox = (AxisAlignedBB)value;
 
 		}
@@ -435,7 +429,7 @@ public abstract class AbstractParticle implements INBTSerializable<NBTTagCompoun
 	{
 		programs.forEach(p -> p.onParticleDeath(this));
 		if(chainedParticles!=null)
-			this.chainedParticles.forEach(consumer -> consumer.accept(this));
+			this.chainedParticles.forEach(consumer -> consumer.spawn(this));
 	}
 
 	public World getWorld()

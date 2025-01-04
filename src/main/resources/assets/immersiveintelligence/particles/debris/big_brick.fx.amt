@@ -1,7 +1,7 @@
 {
   "type": "ParticleModel",
-  "models": ["debris/brick/brick1.obj", "debris/brick/brick2.obj"],
-  "max_lifetime": 60,
+  "models": ["debris/big_brick/big_brick.obj"],
+  "max_lifetime": 70,
   "draw_stage": "custom",
   "aabb": 0.25,
   "programs": [

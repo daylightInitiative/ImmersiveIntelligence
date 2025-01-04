@@ -1,6 +1,9 @@
 {
   "type": "ParticleModel",
-  "models": ["debris/branch/branch_needle1.obj", "debris/branch/branch_needle2.obj"],
+  "models": [
+    "debris/branch/branch_leaf1.obj", "debris/branch/branch_leaf2.obj", "debris/branch/branch_leaf3.obj",
+    "debris/branch/branch_leaf4.obj"
+  ],
   "max_lifetime": 40,
   "draw_stage": "custom",
   "aabb": 0.0625,

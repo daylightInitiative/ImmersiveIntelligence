@@ -1,7 +1,6 @@
 package pl.pabilo8.immersiveintelligence.client.fx.factories;
 
-import blusunrize.immersiveengineering.client.ClientUtils;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
@@ -28,7 +27,7 @@ public class ParticleVanillaFactory extends ParticleFactory<ParticleVanilla> imp
 	private static ResLoc EMPTY_TEXTURE = ResLoc.of(IIReference.RES_TEXTURES, "empty").withExtension(ResLoc.EXT_PNG);
 
 	List<ResourceLocation> textures = new ArrayList<>();
-	public TextureAtlasSprite[] compiledTextures;
+	public ResourceLocation[] compiledTextures;
 
 	public ParticleVanillaFactory(BiFunction<World, Vec3d, ParticleVanilla> particleConstructor)
 	{
@@ -61,18 +60,23 @@ public class ParticleVanillaFactory extends ParticleFactory<ParticleVanilla> imp
 		ParticleVanilla particle = super.create(position, motion, rotation);
 
 		if(compiledTextures.length==0)
-			particle.setTextures(new TextureAtlasSprite[]{ClientUtils.getSprite(EMPTY_TEXTURE)});
+			particle.setTextures(new ResLoc[]{EMPTY_TEXTURE});
 		else
 			particle.setTextures(compiledTextures);
 		return particle;
 	}
 
 	@Override
+	public void registerSprites(TextureMap map)
+	{
+		for(ResourceLocation texture : textures)
+			map.registerSprite(texture);
+	}
+
+	@Override
 	public void reloadModels()
 	{
 		//Load textures
-		compiledTextures = textures.stream()
-				.map(ClientUtils::getSprite)
-				.toArray(TextureAtlasSprite[]::new);
+		compiledTextures = textures.toArray(new ResourceLocation[0]);
 	}
 }

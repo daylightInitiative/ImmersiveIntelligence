@@ -1,6 +1,7 @@
 package pl.pabilo8.immersiveintelligence.client.fx.utils;
 
 import blusunrize.immersiveengineering.client.ClientUtils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -50,7 +51,7 @@ public class ParticleSystem
 			particleAmount = 0;
 		}
 	};
-	private final TreeMap<Integer, List<AbstractParticle>> scheduledParticles = new TreeMap<>();
+	private final Int2ObjectOpenHashMap<List<AbstractParticle>> scheduledParticles = new Int2ObjectOpenHashMap<>();
 
 	//--- Update and Rendering ---//
 
@@ -69,23 +70,33 @@ public class ParticleSystem
 
 		synchronized(scheduledParticles)
 		{
-			//spawn particles scheduled for this tick
+			//Spawn particles scheduled for this tick
 			List<AbstractParticle> current = scheduledParticles.remove(0);
 			if(current!=null)
 				current.forEach(this::privateAddEffect);
-			//cycle through the scheduled particles and decrement their timers
-			scheduledParticles.keySet().forEach(i -> scheduledParticles.put(i-1, scheduledParticles.remove(i)));
+
+			//Cycle through the scheduled particles and decrement their timers
+			int[] keys = scheduledParticles.keySet().toIntArray();
+			Arrays.sort(keys);
+			for(int i = keys.length-1; i >= 0; i--)
+			{
+				int key = keys[i];
+				List<AbstractParticle> particles = scheduledParticles.remove(key);
+				int newKey = key-1;
+				if(newKey >= 0)
+					scheduledParticles.put(newKey, particles);
+			}
 		}
 
 		int count = 0;
-		//go through every particle indiscriminately
+		//Go through every particle indiscriminately
 		synchronized(particles)
 		{
 			for(Queue<AbstractParticle> particleQueue : particles.values())
 			{
 				for(Iterator<AbstractParticle> iterator = particleQueue.iterator(); iterator.hasNext(); )
 				{
-					//particles cost a lot less to update than to render, so we can update more of them
+					//Particles cost a lot less to update than to render, so we can update more of them
 					if(++count > Graphics.maxSimulatedParticles)
 						break;
 					AbstractParticle particle = iterator.next();

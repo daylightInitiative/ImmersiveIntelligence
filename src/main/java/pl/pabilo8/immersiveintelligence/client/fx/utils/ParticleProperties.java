@@ -49,7 +49,7 @@ public enum ParticleProperties implements ISerializableEnum
 
 	//--- System ---//
 	DRAW_STAGE(ParticleDrawStages.class, () -> ParticleDrawStages.CUSTOM),
-	BOUNDING_BOX(AxisAlignedBB.class, () -> new AxisAlignedBB(-0.25f, -0.25f, -0.25f, 0.25f, 0.25f, 0.25f));
+	AABB(AxisAlignedBB.class, () -> new AxisAlignedBB(-0.25f, -0.25f, -0.25f, 0.25f, 0.25f, 0.25f));
 
 	private final Class<?> propertyClass;
 	private final Supplier<?> defaultValue;
@@ -88,10 +88,15 @@ public enum ParticleProperties implements ISerializableEnum
 					.map(NBTTagString::getString)
 					.map(ResourceLocation::new)
 					.toArray(ResourceLocation[]::new);
+		else if(propertyClass==IIColor.class)
+			return (T)IIColor.fromHex(nbt.getString(this.getName()));
 		else if(propertyClass==ParticleDrawStages.class)
 			return (T)nbt.getEnum(this.getName(), ParticleDrawStages.class);
 		else if(propertyClass==AxisAlignedBB.class)
-			return (T)nbt.getAxisAlignedBB(this.getName());
+		{
+			double side = nbt.getDouble(this.getName());
+			return (T)new AxisAlignedBB(-side, -side, -side, side, side, side);
+		}
 		else if(propertyClass==ParticleProgram.class)
 			return (T)ParticleRegistry.getProgram(nbt.getString(this.getName()));
 		else
@@ -112,10 +117,12 @@ public enum ParticleProperties implements ISerializableEnum
 			nbt.withBoolean(this.getName(), (Boolean)value);
 		else if(propertyClass==ResourceLocation[].class)
 			nbt.withList(this.getName(), o -> new NBTTagString(o.toString()), (ResourceLocation[])value);
+		else if(propertyClass==IIColor.class)
+			nbt.withString(this.getName(), ((IIColor)value).getHexARGB());
 		else if(propertyClass==ParticleDrawStages.class)
 			nbt.withEnum(this.getName(), (ParticleDrawStages)value);
 		else if(propertyClass==AxisAlignedBB.class)
-			nbt.withAxisAlignedBB(this.getName(), (AxisAlignedBB)value);
+			nbt.withDouble(this.getName(), ((AxisAlignedBB)value).getAverageEdgeLength());
 		else if(propertyClass==ParticleProgram.class)
 			nbt.withString(this.getName(), ((ParticleProgram)value).getProgramName());
 		else

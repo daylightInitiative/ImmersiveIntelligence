@@ -121,11 +121,11 @@ public class IIConfigHandler
 
 			@RangeInt(min = 0)
 			@Comment({"Max amount of particles that can exist within the particle system."})
-			public static int maxAllowedParticles = 3000;
+			public static int maxAllowedParticles = 20000;
 
 			@RangeInt(min = 0)
 			@Comment({"Max amount of particles that will be simulated."})
-			public static int maxSimulatedParticles = 2000;
+			public static int maxSimulatedParticles = 6000;
 
 			@RangeInt(min = 0)
 			@Comment({"Max amount of particles that will be drawn. Should be less or equal to maxSimulatedParticles."})

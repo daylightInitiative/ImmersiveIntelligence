@@ -18,6 +18,11 @@ public abstract class ParticleProgram
 		this.programName = programName;
 	}
 
+	public void initArguments(String... args) throws ParticleArgumentException
+	{
+
+	}
+
 	public void onParticleCreation(AbstractParticle particle)
 	{
 
@@ -41,5 +46,16 @@ public abstract class ParticleProgram
 	public String getProgramName()
 	{
 		return programName;
+	}
+
+	/**
+	 * An exception thrown when a particle program argument is invalid.
+	 */
+	public static class ParticleArgumentException extends Exception
+	{
+		public ParticleArgumentException(String message)
+		{
+			super(message);
+		}
 	}
 }
