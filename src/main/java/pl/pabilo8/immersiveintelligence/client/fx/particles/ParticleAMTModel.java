@@ -3,6 +3,7 @@ package pl.pabilo8.immersiveintelligence.client.fx.particles;
 import blusunrize.immersiveengineering.client.ClientUtils;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -52,6 +53,17 @@ public class ParticleAMTModel extends ParticleAbstractModel
 		switch(key)
 		{
 			case TEXTURES:
+				if(value instanceof ResourceLocation[])
+				{
+					ResourceLocation[] array = (ResourceLocation[])value;
+					TextureAtlasSprite[] newTextures = new TextureAtlasSprite[textures.length];
+					for(int i = 0; i < textures.length; i++)
+						newTextures[i] = i > array.length?textures[i]: ClientUtils.getSprite(array[i]);
+					this.textures = newTextures;
+				}
+				else if(value instanceof TextureAtlasSprite[])
+					textures = (TextureAtlasSprite[])value;
+				break;
 			case TEXTURES_COUNT:
 				break;
 			default:

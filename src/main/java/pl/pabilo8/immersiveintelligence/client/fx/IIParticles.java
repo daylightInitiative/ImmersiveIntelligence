@@ -7,10 +7,23 @@ import pl.pabilo8.immersiveintelligence.client.fx.factories.ParticleModelFactory
 import pl.pabilo8.immersiveintelligence.client.fx.factories.ParticleVanillaFactory;
 import pl.pabilo8.immersiveintelligence.client.fx.particles.AbstractParticle;
 import pl.pabilo8.immersiveintelligence.client.fx.particles.ParticleAMTModel;
+import pl.pabilo8.immersiveintelligence.client.fx.particles.ParticleAbstractModel;
 import pl.pabilo8.immersiveintelligence.client.fx.particles.ParticleVanilla;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.IIParticleUtils.PositionGenerator;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleOffspring;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProgram;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProperties;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
+import pl.pabilo8.immersiveintelligence.common.IILogger;
+import pl.pabilo8.immersiveintelligence.common.util.ResLoc;
+
+import javax.vecmath.Vector3f;
+import java.io.File;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 /**
  * @author Pabilo8
@@ -21,17 +34,7 @@ public class IIParticles
 {
 	//--- Particle IDs Reference ---//
 	//Gunfire and related
-	public static final String PARTICLE_GUNFIRE = "gunfire";
-
-	//Debris Complimentary
-	public static final String PARTICLE_BLOCK_CHUNK = "block/block_chunk";
-	public static final String PARTICLE_BLOCK_IMPACT = "block/block_impact";
-	public static final String PARTICLE_SMOKE_TRACE = "smoke/smoke_trace";
-	//Explosions
-	public static final String PARTICLE_SHOCKWAVE = "block/shockwave";
-	public static final String PARTICLE_SHOCKWAVE_BIT = "explosion_shockwave_bit";
-	public static final String PARTICLE_EXPLOSION_TNT = "explosion_tnt";
-	public static final String PARTICLE_EXPLOSION_TNT_LIGHT = "explosion_tnt_light";
+	public static final String PARTICLE_GUNFIRE = "ammo/gunfire";
 
 	@SideOnly(Side.CLIENT)
 	public static void preInit()
@@ -41,23 +44,22 @@ public class IIParticles
 		ParticleRegistry.registerParticleType("ParticleVanilla", () -> new ParticleVanillaFactory(ParticleVanilla::new));
 
 		//Register programs
-		ParticleRegistry.registerProgram(new ParticleProgram("dust_transition")
+		ParticleRegistry.registerProgram(() -> new ParticleProgram("dust_transition")
 		{
 			@Override
 			public void onParticleRender(AbstractParticle particle, float partialTicks)
 			{
-				super.onParticleRender(particle, partialTicks);
-				float progress = particle.getProgress(0);
-				particle.setProperty(ParticleProperties.SCALE, 1+progress*0.5);
-				particle.setProperty(ParticleProperties.ALPHA, 1-progress);
+				float progress = particle.getProgress(partialTicks);
+				particle.setProperty(ParticleProperties.SCALE, 1f+progress*0.5f);
+				particle.setProperty(ParticleProperties.ALPHA, 1f-progress);
 			}
 		});
-		ParticleRegistry.registerProgram(new ParticleProgram("smoke_transition")
+		ParticleRegistry.registerProgram(() -> new ParticleProgram("smoke_transition")
 		{
 			@Override
 			public void onParticleRender(AbstractParticle particle, float partialTicks)
 			{
-				float progress = particle.getProgress(0);
+				float progress = particle.getProgress(partialTicks);
 				particle.setProperty(ParticleProperties.SCALE, 1+progress);
 
 				float alpha;
@@ -71,17 +73,17 @@ public class IIParticles
 				particle.setProperty(ParticleProperties.ALPHA, alpha);
 			}
 		});
-		ParticleRegistry.registerProgram(new ParticleProgram("shockwave_transition")
+		ParticleRegistry.registerProgram(() -> new ParticleProgram("shockwave_transition")
 		{
 			@Override
 			public void onParticleRender(AbstractParticle particle, float partialTicks)
 			{
-				float progress = particle.getProgress(0);
+				float progress = particle.getProgress(partialTicks);
 				particle.setProperty(ParticleProperties.SCALE, 1+progress*2);
 				particle.setProperty(ParticleProperties.ALPHA, 1-progress);
 			}
 		});
-		ParticleRegistry.registerProgram(new ParticleProgram("lifetime_retexture")
+		ParticleRegistry.registerProgram(() -> new ParticleProgram("lifetime_retexture")
 		{
 			@Override
 			public void onParticleRender(AbstractParticle particle, float partialTicks)
@@ -90,19 +92,115 @@ public class IIParticles
 				particle.setProperty(ParticleProperties.TEXTURE_SHIFT, (int)(particle.getProgress(partialTicks)*textures));
 			}
 		});
-		ParticleRegistry.registerProgram(new ParticleProgram("debris_rotation")
+		ParticleRegistry.registerProgram(() -> new ParticleProgram("retexture")
 		{
+			int textureID = -1;
+			ResLoc res = null;
+
+			@Override
+			public void initArguments(String... args) throws ParticleArgumentException
+			{
+				try
+				{
+					textureID = Integer.parseInt(args[0]);
+					res = ResLoc.of(args[1]);
+				} catch(Exception e)
+				{
+					throw new ParticleArgumentException("Retexture program requires a texture ID and a resource location as an arguments!");
+				}
+			}
+
+			@Override
+			public void onParticleCreation(AbstractParticle particle)
+			{
+				if(textureID==-1||res==null||!(particle instanceof ParticleAbstractModel))
+					return;
+				((ParticleAbstractModel)particle).retexture(textureID, res);
+			}
+		});
+		ParticleRegistry.registerProgram(() -> new ParticleProgram("gravity")
+		{
+			float dampen = 1, gravity = 0;
+
+			@Override
+			public void initArguments(String... args) throws ParticleArgumentException
+			{
+				try
+				{
+					dampen = Float.parseFloat(args[0]);
+					gravity = Float.parseFloat(args[1]);
+				} catch(Exception e)
+				{
+					throw new ParticleArgumentException("Gravity program requires a motion dampening and gravity value as an arguments!");
+				}
+			}
+
 			@Override
 			public void onParticleMovement(AbstractParticle particle)
 			{
-				super.onParticleMovement(particle);
+				Vector3f motion = (Vector3f)particle.getProperty(ParticleProperties.MOTION);
+				motion.scale(dampen);
+				motion.y -= gravity;
+			}
+		});
+		ParticleRegistry.registerProgram(() -> new ParticleProgram("rotation")
+		{
+			float yawSpeed = 0, pitchSpeed = 0;
+
+			@Override
+			public void initArguments(String... args) throws ParticleArgumentException
+			{
+				try
+				{
+					yawSpeed = Float.parseFloat(args[0]);
+					pitchSpeed = Float.parseFloat(args[1]);
+				} catch(Exception e)
+				{
+					throw new ParticleArgumentException("Rotation program requires a yaw and pitch value as an arguments!");
+				}
+			}
+
+			@Override
+			public void onParticleMovement(AbstractParticle particle)
+			{
 				if(!((Boolean)particle.getProperty(ParticleProperties.ON_GROUND)))
 				{
-					float yaw = MathHelper.wrapDegrees((float)particle.getProperty(ParticleProperties.ROTATION_YAW)+2f);
+					float yaw = MathHelper.wrapDegrees((float)particle.getProperty(ParticleProperties.ROTATION_YAW)+yawSpeed);
+					float pitch = MathHelper.wrapDegrees((float)particle.getProperty(ParticleProperties.ROTATION_PITCH)+pitchSpeed);
 					particle.setProperty(ParticleProperties.ROTATION_YAW, yaw);
-					float pitch = MathHelper.wrapDegrees((float)particle.getProperty(ParticleProperties.ROTATION_PITCH)+2f);
 					particle.setProperty(ParticleProperties.ROTATION_PITCH, pitch);
 				}
+			}
+		});
+		ParticleRegistry.registerProgram(() -> new ParticleProgram("emitter")
+		{
+			int interval = 20;
+			ParticleOffspring<?> offspring = null;
+
+			@Override
+			public void initArguments(String... args) throws ParticleArgumentException
+			{
+				try
+				{
+					interval = Integer.parseInt(args[0]);
+					offspring = new ParticleOffspring<>(
+							args[1],
+							PositionGenerator.valueOf(args[2].toUpperCase()),
+							Float.parseFloat(args[3]),
+							Integer.parseInt(args[4]),
+							args.length > 5?Integer.parseInt(args[5]): Integer.parseInt(args[4])
+					);
+				} catch(Exception e)
+				{
+					throw new ParticleArgumentException("Could not parse emitter program arguments, "+e.getMessage());
+				}
+			}
+
+			@Override
+			public void onParticleMovement(AbstractParticle particle)
+			{
+				if((int)particle.getProperty(ParticleProperties.LIFETIME)%interval==0)
+					offspring.spawn(particle);
 			}
 		});
 	}
@@ -110,10 +208,22 @@ public class IIParticles
 	@SideOnly(Side.CLIENT)
 	public static void init()
 	{
-		ParticleRegistry.registerParticle(PARTICLE_BLOCK_CHUNK);
-		ParticleRegistry.registerParticle(PARTICLE_BLOCK_IMPACT);
-		ParticleRegistry.registerParticle(PARTICLE_SMOKE_TRACE);
-		ParticleRegistry.registerParticle(PARTICLE_SHOCKWAVE);
-		ParticleRegistry.registerParticle(PARTICLE_GUNFIRE);
+		URL url = IIParticles.class.getResource("/assets/immersiveintelligence/particles/");
+		if(url!=null)
+			try(Stream<Path> paths = Files.walk(Paths.get(url.toURI())))
+			{
+				paths.filter(Files::isRegularFile)
+						.map(Path::toString)
+						.filter(file -> file.endsWith(".fx.amt"))
+						.forEach(file -> {
+							String name = file.substring(file.indexOf("particles")+10, file.length()-7)
+									.replace(File.separator, "/");
+							ParticleRegistry.registerParticle(name);
+						});
+			} catch(Exception e)
+			{
+				IILogger.error("Failed to load particles from jar!");
+			}
+//		ParticleRegistry.registerParticle(PARTICLE_GUNFIRE);
 	}
 }

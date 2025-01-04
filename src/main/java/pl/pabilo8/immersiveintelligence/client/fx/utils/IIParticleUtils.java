@@ -3,6 +3,7 @@ package pl.pabilo8.immersiveintelligence.client.fx.utils;
 import blusunrize.immersiveengineering.common.util.Utils;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.Vec3d;
 import pl.pabilo8.immersiveintelligence.common.util.ISerializableEnum;
 
@@ -82,6 +83,13 @@ public class IIParticleUtils
 		return new Vec3d(vector.x, y, vector.z);
 	}
 
+	public static Vector2f toVector2f(Vec3d direction)
+	{
+		float yaw = (float)Math.atan2(direction.z, direction.x);
+		float pitch = (float)Math.atan2(Math.sqrt(direction.x*direction.x+direction.z*direction.z), direction.y);
+		return new Vector2f(yaw, pitch);
+	}
+
 	//TODO: 22.12.2024 rework to a program
 	/*
 	 *//**
@@ -104,23 +112,22 @@ public class IIParticleUtils
 		easyNBT.withColor(IIParticleReference.COLOR,
 				IIColor.fromPackedRGB(particle.getWorld().getBiome(pos).getFoliageColorAtPos(pos)));
 	}*/
-	/*
-	 *//**
- * Specific method of vector normalization for an explosion direction, has a lower threshold for vertical axis
- *
- * @param actual vector to normalize
- * @return normalized vector
- *//*
+
+
+	/**
+	 * Specific method of vector normalization for an explosion direction, has a lower threshold for vertical axis
+	 *
+	 * @param actual vector to normalize
+	 * @return normalized vector
+	 **/
 	public static Vec3d normalizeExplosionDirection(Vec3d actual)
 	{
 		if(Math.abs(actual.y) > 0.25)
 			return new Vec3d(0, Math.signum(actual.y), 0);
 
 		Vec3d normalized = withY(actual, 0).normalize();
-		EnumFacing.getFacingFromVector(normalized.x, normalized.y, normalized.z);
-		return new Vec3d(
-				.getDirectionVec());
-	}*/
+		return new Vec3d(EnumFacing.getFacingFromVector((float)normalized.x, (float)normalized.y, (float)normalized.z).getDirectionVec());
+	}
 
 	/**
 	 * Generates a stream of positions and motions based around an origin point.
@@ -141,9 +148,7 @@ public class IIParticleUtils
 					public Vec3d generatePosition(Vec3d origin, int index, float size, int amount)
 					{
 						Vec3d pos = new Vec3d(randFloat.get(), 0, randFloat.get());
-						pos.scale(size);
-						pos.add(origin);
-						return pos;
+						return pos.scale(size).add(origin);
 					}
 				},
 		CIRCLE_XZ()
@@ -153,15 +158,27 @@ public class IIParticleUtils
 					{
 						double angle = Math.toRadians(360/(float)amount*index);
 						Vec3d pos = new Vec3d((float)Math.cos(angle), 0, (float)Math.sin(angle));
-						pos.scale(size);
-						pos.add(origin);
-						return pos;
+						return pos.scale(size).add(origin);
 					}
 				},
 		CONE_XZ(),
 		CONE_XY(),
 		CONE_ZY(),
-		SPHERE(),
+		SPHERE()
+				{
+					@Override
+					public Vec3d generatePosition(Vec3d origin, int index, float size, int amount)
+					{
+						double phi = Math.acos(1-2*randFloat.get());
+						double theta = 2*Math.PI*randFloat.get();
+						Vec3d pos = new Vec3d(
+								Math.sin(phi)*Math.cos(theta),
+								Math.sin(phi)*Math.sin(theta),
+								Math.cos(phi)
+						);
+						return pos.scale(size).add(origin);
+					}
+				},
 		SQUARE(),
 		STAR(),
 		ORB(),

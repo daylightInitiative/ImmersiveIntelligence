@@ -1,7 +1,9 @@
 package pl.pabilo8.immersiveintelligence.client.fx.particles;
 
+import blusunrize.immersiveengineering.client.ClientUtils;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -106,7 +108,7 @@ public class ParticleVanilla extends AbstractParticle
 				textureShift = (int)value;
 				break;
 			case TEXTURES:
-				setTextures((TextureAtlasSprite[])value);
+				setTextures((ResourceLocation[])value);
 				break;
 			case TEXTURES_COUNT:
 				break; //do nothing
@@ -147,11 +149,12 @@ public class ParticleVanilla extends AbstractParticle
 
 		//Calculate the position camera transform, so it's relative to the viewpoint
 		Vec3d[] avec3d = new Vec3d[]{
-				new Vec3d(-x*fSize-xy*fSize, -z*fSize, -yz*fSize-xz*fSize),
-				new Vec3d(-x*fSize+xy*fSize, z*fSize, -yz*fSize+xz*fSize),
-				new Vec3d(x*fSize+xy*fSize, z*fSize, yz*fSize+xz*fSize),
-				new Vec3d(x*fSize-xy*fSize, -z*fSize, yz*fSize-xz*fSize)
+				new Vec3d(-x*fSize-yz*fSize, -xz*fSize, -z*fSize-xy*fSize),
+				new Vec3d(-x*fSize+yz*fSize, xz*fSize, -z*fSize+xy*fSize),
+				new Vec3d(x*fSize+yz*fSize, xz*fSize, z*fSize+xy*fSize),
+				new Vec3d(x*fSize-yz*fSize, -xz*fSize, z*fSize-xy*fSize)
 		};
+
 
 		//Get UV values
 		TextureAtlasSprite texture = textures[textureShift%textures.length];
@@ -187,9 +190,11 @@ public class ParticleVanilla extends AbstractParticle
 
 	//--- Utils ---//
 
-	public void setTextures(TextureAtlasSprite[] textures)
+	public void setTextures(ResourceLocation[] textures)
 	{
-		this.textures = textures;
+		this.textures = new TextureAtlasSprite[textures.length];
+		for(int i = 0; i < textures.length; i++)
+			this.textures[i] = ClientUtils.getSprite(textures[i]);
 	}
 
 	private int getBrightnessForRender()

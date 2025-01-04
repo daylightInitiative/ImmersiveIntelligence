@@ -44,7 +44,7 @@ public class AmmoComponentTracerPowder extends AmmoComponent
 	@Override
 	public boolean spawnParticleTrail(EntityAmmoBase ammo, NBTTagCompound nbt)
 	{
-		int color = nbt.hasKey(ItemIITracerPowder.NBT_TRACER_COLOUR)?nbt.getInteger(ItemIITracerPowder.NBT_TRACER_COLOUR): 0xffffff;
+		IIColor color = nbt.hasKey(ItemIITracerPowder.NBT_TRACER_COLOUR)?IIColor.fromPackedRGB(nbt.getInteger(ItemIITracerPowder.NBT_TRACER_COLOUR)): IIColor.WHITE;
 		ParticleRegistry.spawnTracerFX(ammo.getPositionVector(), IIEntityUtils.getEntityMotion(ammo), ammo.getAmmoType().getCaliber()/16f, color);
 		return true;
 	}

@@ -4,23 +4,21 @@ import blusunrize.immersiveengineering.client.ClientUtils;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import pl.pabilo8.immersiveintelligence.client.fx.particles.AbstractParticle;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProgram;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProperties;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleSystem;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.IIParticleUtils.PositionGenerator;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.*;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
 import javax.annotation.Nonnull;
 import javax.vecmath.Vector2f;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -33,8 +31,8 @@ import java.util.stream.Collectors;
 @SideOnly(Side.CLIENT)
 public class ParticleFactory<T extends AbstractParticle>
 {
-	private final Set<Consumer<T>> chained = new HashSet<>();
-	private final Multimap<Integer, Consumer<T>> scheduled = HashMultimap.create();
+	private final Set<ParticleOffspring<T>> chained = new HashSet<>();
+	private final Multimap<Integer, ParticleOffspring<T>> scheduled = HashMultimap.create();
 	private final BiFunction<World, Vec3d, T> particleType;
 	private final Map<ParticleProperties, Object> properties = new HashMap<>();
 	private Set<ParticleProgram> programs = Collections.emptySet();
@@ -95,7 +93,7 @@ public class ParticleFactory<T extends AbstractParticle>
 	 * @param chained The chained particle effect.
 	 * @return The particle factory instance.
 	 */
-	public ParticleFactory<T> withChainedParticle(Consumer<T> chained)
+	public ParticleFactory<T> withChainedParticle(ParticleOffspring<T> chained)
 	{
 		this.chained.add(chained);
 		return this;
@@ -108,7 +106,7 @@ public class ParticleFactory<T extends AbstractParticle>
 	 * @param scheduled the scheduled particle effect
 	 * @return The particle factory instance.
 	 */
-	public ParticleFactory<T> withScheduledParticle(int delay, Consumer<T> scheduled)
+	public ParticleFactory<T> withScheduledParticle(int delay, ParticleOffspring<T> scheduled)
 	{
 		this.scheduled.put(delay, scheduled);
 		return this;
@@ -142,6 +140,33 @@ public class ParticleFactory<T extends AbstractParticle>
 				.addAll(programs)
 				.addAll(parsedPrograms)
 				.build();
+
+		//Parse scheduled particles
+		nbt.streamList(NBTTagCompound.class, "scheduled")
+				.map(this::parseOffspringEntry)
+				.forEach(entry -> withScheduledParticle(entry.getKey(), entry.getValue()));
+
+		//Parse chained particles
+		nbt.streamList(NBTTagCompound.class, "chained")
+				.map(this::parseOffspringEntry)
+				.map(Map.Entry::getValue)
+				.forEach(this::withChainedParticle);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map.Entry<Integer, ParticleOffspring<T>> parseOffspringEntry(NBTTagCompound nbt)
+	{
+		int time = nbt.getInteger("time");
+		String generatorType = nbt.getString("generator");
+		float distance = nbt.getFloat("distance");
+		int amount = nbt.getInteger("amount");
+		int minAmount = amount==0?nbt.getInteger("min_amount"): amount;
+		int maxAmount = amount==0?nbt.getInteger("max_amount"): amount;
+		String type = nbt.getString("type");
+
+		PositionGenerator positionGenerator = PositionGenerator.valueOf(generatorType.toUpperCase());
+		ParticleOffspring<T> offspring = new ParticleOffspring<>(type, positionGenerator, distance, minAmount, maxAmount);
+		return new AbstractMap.SimpleEntry<>(time, offspring);
 	}
 
 	/**
@@ -213,7 +238,13 @@ public class ParticleFactory<T extends AbstractParticle>
 	@Nonnull
 	public final T scheduleSpawn(Vec3d position, Vec3d motion, float rotationYaw, float rotationPitch, int delay)
 	{
-		T particle = create(position, motion, rotationYaw, rotationPitch);
+		return scheduleSpawn(position, motion, new Vector2f(rotationYaw, rotationPitch), delay);
+	}
+
+	@Nonnull
+	public final T scheduleSpawn(Vec3d position, Vec3d motion, Vector2f direction, int delay)
+	{
+		T particle = create(position, motion, direction);
 		ParticleSystem.INSTANCE.scheduleEffect(particle, delay);
 		return particle;
 	}
