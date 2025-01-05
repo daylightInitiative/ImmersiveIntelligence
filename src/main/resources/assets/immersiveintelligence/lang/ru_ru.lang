@@ -505,9 +505,9 @@ info.immersiveintelligence.tool_durability=Прочность: %1$s / %2$s
 info.immersiveintelligence.yaw=Рыск: %s
 
 info.immersiveintelligence.debugger_mode=Режим отладки: %s
-info.immersiveintelligence.debugger_mode.0=Трансивер
-info.immersiveintelligence.debugger_mode.1=Передатчик
-info.immersiveintelligence.debugger_mode.2=Приёмник
+info.immersiveintelligence.debugger_mode.transceiver=Трансивер
+info.immersiveintelligence.debugger_mode.transmitter=Передатчик
+info.immersiveintelligence.debugger_mode.receiver=Приёмник
 
 info.immersiveintelligence.tachometer_message.basic=Внутренний: скорость %s об/мин / крутящий момент %s Нм.
 info.immersiveintelligence.tachometer_message.advanced=Внутренний: скорость %s об/мин / крутящий момент %s Нм. Внешнее: скорость %s об/мин / крутящий момент %s Нм.

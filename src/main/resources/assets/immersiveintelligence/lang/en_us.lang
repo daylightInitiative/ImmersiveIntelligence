@@ -1355,9 +1355,9 @@ info.immersiveintelligence.distance=Distance: %s
 info.immersiveintelligence.distance_unknown=Unknown
 
 info.immersiveintelligence.debugger_mode=Debugger Mode: %s
-info.immersiveintelligence.debugger_mode.0=Transceiver
-info.immersiveintelligence.debugger_mode.1=Transmitter
-info.immersiveintelligence.debugger_mode.2=Receiver
+info.immersiveintelligence.debugger_mode.transceiver=Transceiver
+info.immersiveintelligence.debugger_mode.transmitter=Transmitter
+info.immersiveintelligence.debugger_mode.receiver=Receiver
 
 info.immersiveintelligence.punchtape_reader_mode=Punchtape Reader Mode: %s
 info.immersiveintelligence.punchtape_reader_mode.0=Redstone Indifferent
