@@ -4,6 +4,7 @@ import blusunrize.immersiveengineering.api.Lib;
 import blusunrize.immersiveengineering.api.tool.ITool;
 import blusunrize.immersiveengineering.common.util.ItemNBTHelper;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,6 +14,7 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -36,6 +38,7 @@ import pl.pabilo8.immersiveintelligence.common.util.item.IIItemEnum.IIItemProper
 import pl.pabilo8.immersiveintelligence.common.util.item.ItemIIBase;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,10 +48,17 @@ import java.util.List;
 @IIItemProperties(category = IICategory.TOOLS)
 public class ItemIILighter extends ItemIIBase implements ITool
 {
+	private final List<IIILighterAction> blockActions = new ArrayList<>();
 
 	public ItemIILighter()
 	{
 		super("lighter", 1);
+	}
+
+
+	public void registerBlockAction(IIILighterAction action)
+	{
+		blockActions.add(action);
 	}
 
 	/**
@@ -74,32 +84,43 @@ public class ItemIILighter extends ItemIIBase implements ITool
 	@Override
 	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
 	{
-		pos = pos.offset(side);
 		ItemStack stack = player.getHeldItem(hand);
 
 		IFluidHandlerItem cap = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+		FluidStack contained;
 
-		if(!player.canPlayerEdit(pos, side, stack))
-		{
+		//Check if the player can interact with the block
+		if(!player.canPlayerEdit(pos, side, stack)||cap==null||(contained = FluidUtil.getFluidContained(stack))==null)
 			return EnumActionResult.PASS;
-		}
-		else if(LighterFuelHandler.isValidFuel(FluidUtil.getFluidContained(stack))&&LighterFuelHandler.getBurnQuantity(FluidUtil.getFluidContained(stack)) <= FluidUtil.getFluidContained(stack).amount)
+		//Check if the fuel is valid
+		if(!LighterFuelHandler.isValidFuel(contained)||LighterFuelHandler.getBurnQuantity(contained) > contained.amount)
+			return EnumActionResult.PASS;
+
+		//Check if the block has a special action registered
+		IBlockState state = world.getBlockState(pos);
+		TileEntity tileEntity = world.getTileEntity(pos);
+		for(IIILighterAction action : blockActions)
+			if(action.test(world, pos, player, state, tileEntity))
+				return EnumActionResult.SUCCESS;
+
+
+		//Doesn't affect the clicked block, but the block adjacent to it
+		pos = pos.offset(side);
+
+		//If not, ignite the block normally
+		if(world.isAirBlock(pos))
 		{
-			if(world.isAirBlock(pos))
-			{
-				world.playSound(player, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, itemRand.nextFloat()*0.4F+0.8F);
-				world.setBlockState(pos, Blocks.FIRE.getDefaultState(), 11);
-			}
-
-			if(player instanceof EntityPlayerMP)
-			{
-				CriteriaTriggers.PLACED_BLOCK.trigger((EntityPlayerMP)player, pos, stack);
-			}
-
-			cap.drain(LighterFuelHandler.getBurnQuantity(FluidUtil.getFluidContained(stack)), true);
-			return EnumActionResult.SUCCESS;
+			world.playSound(player, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, itemRand.nextFloat()*0.4F+0.8F);
+			world.setBlockState(pos, Blocks.FIRE.getDefaultState(), 11);
 		}
-		return EnumActionResult.PASS;
+
+		//On server, trigger the advancement
+		if(player instanceof EntityPlayerMP)
+			CriteriaTriggers.PLACED_BLOCK.trigger((EntityPlayerMP)player, pos, stack);
+
+		//Drain the fuel
+		cap.drain(LighterFuelHandler.getBurnQuantity(contained), true);
+		return EnumActionResult.SUCCESS;
 	}
 
 	@Override
@@ -162,5 +183,14 @@ public class ItemIILighter extends ItemIIBase implements ITool
 	public boolean isTool(ItemStack item)
 	{
 		return true;
+	}
+
+	/**
+	 * Custom action to be performed when the lighter is used on a block
+	 */
+	@FunctionalInterface
+	public interface IIILighterAction
+	{
+		boolean test(World world, BlockPos pos, EntityPlayer player, IBlockState state, TileEntity tileEntity);
 	}
 }

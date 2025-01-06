@@ -80,10 +80,11 @@ public class IIPacketHandler
 		if(message instanceof IPositionBoundMessage)
 		{
 			IPositionBoundMessage posMessage = (IPositionBoundMessage)message;
-			INSTANCE.sendToAllAround(message, targetPointFromPos(posMessage.getPosition(), posMessage.getWorld(), DEFAULT_RANGE));
+			INSTANCE.sendToAllAround(message, targetPointFromPos(posMessage.getPosition(), posMessage.getWorld(), posMessage.getPacketDistance()));
 		}
 		else if(message instanceof IEntityBoundMessage)
-			INSTANCE.sendToAllTracking(message, targetPointFromEntity(((IEntityBoundMessage)message).getEntity(), DEFAULT_RANGE));
+			INSTANCE.sendToAllTracking(message, targetPointFromEntity(((IEntityBoundMessage)message).getEntity(),
+					((IEntityBoundMessage)message).getPacketDistance()));
 		else
 			IILogger.error("Attempt to send a message without a valid position or entity!");
 	}

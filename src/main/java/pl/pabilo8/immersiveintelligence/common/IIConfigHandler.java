@@ -119,6 +119,9 @@ public class IIConfigHandler
 			@Comment({"Max amount of block penetrations that will be rendered. 0 will disable rendering."})
 			public static int maxPenetratedBlocks = 64;
 
+			@Comment({"Furthest distance II explosion effects should be visible at."})
+			public static int explosionMessageDistance = 256;
+
 			@RangeInt(min = 0)
 			@Comment({"Max amount of particles that can exist within the particle system."})
 			public static int maxAllowedParticles = 20000;
