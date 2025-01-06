@@ -358,7 +358,6 @@ public class ClientProxy extends CommonProxy
 		registerEntityRenderer(EntityFieldHowitzer.class, FieldHowitzerRenderer::new);
 		registerEntityRenderer(EntityTripodPeriscope.class, TripodPeriscopeRenderer::new);
 		registerEntityRenderer(EntityMortar.class, MortarRenderer::new);
-		registerEntityRenderer(EntityHMXDynamitePrimed.class, HMXDynamitePrimedRenderer::new);
 		//Thanks Blu!
 		registerEntityRenderer(EntityCamera.class, EntityRenderNone::new);
 		registerEntityRenderer(EntitySkycrateInternal.class, EntityRenderNone::new);

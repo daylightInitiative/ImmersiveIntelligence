@@ -13,6 +13,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import pl.pabilo8.immersiveintelligence.api.ammo.enums.ComponentEffectShape;
 import pl.pabilo8.immersiveintelligence.client.ClientEventHandler;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
+import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Graphics;
 import pl.pabilo8.immersiveintelligence.common.network.IIMessage;
 import pl.pabilo8.immersiveintelligence.common.util.IIExplosion;
 
@@ -95,5 +96,11 @@ public class MessageExplosion extends IIMessage implements IPositionBoundMessage
 	public Vec3d getPosition()
 	{
 		return pos;
+	}
+
+	@Override
+	public int getPacketDistance()
+	{
+		return Graphics.explosionMessageDistance;
 	}
 }
