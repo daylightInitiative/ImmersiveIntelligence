@@ -139,6 +139,14 @@ public class ItemIIShotgun extends ItemIIGunBase
 			handmade.setTagCompound(EasyNBT.newNBT().withBoolean(HANDMADE, true).unwrap());
 			list.add(handmade);
 		}
+		if(this.isInCreativeTab(tab))
+		{
+			list.add(new ItemStack(this, 1));
+
+			ItemStack sawedOff = new ItemStack(this, 1, 1);
+			sawedOff.setTagCompound(EasyNBT.newNBT().withBoolean(SAWED_OFF, true).unwrap());
+			list.add(sawedOff);
+		}
 	}
 
 	@Override
@@ -146,7 +154,10 @@ public class ItemIIShotgun extends ItemIIGunBase
 	{
 		if(ItemNBTHelper.hasKey(stack, HANDMADE))
 			return "item.immersiveintelligence.shotgun_handmade";
-		return super.getUnlocalizedName(stack);
+		else if(ItemNBTHelper.hasKey(stack, SAWED_OFF))
+			return "item.immersiveintelligence.shotgun_sawed_off";
+		else
+			return super.getUnlocalizedName(stack);
 	}
 
 	@Nullable
@@ -192,8 +203,8 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	public float getVerticalRecoil(ItemStack weapon, EasyNBT nbt, boolean isAimed)
 	{
-		//if(nbt.hasKey(WeaponUpgrade.SEMI_AUTOMATIC))
-			//return (isAimed?0.75f: 1f)*1.55f;
+		if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
+			return (isAimed?0.75f: 1f)*1.55f;
 		return (isAimed?0.5f: 1f)*Shotgun.recoilVertical;
 	}
 
@@ -218,8 +229,8 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	protected float getVelocityModifier(ItemStack weapon, EasyNBT nbt, ItemStack ammo)
 	{
-		//if(nbt.hasKey(WeaponUpgrade.SEMI_AUTOMATIC))
-			//return 1.5f;
+		if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
+			return 1.5f;
 		return 1.75f;
 	}
 }

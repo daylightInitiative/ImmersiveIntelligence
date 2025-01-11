@@ -146,7 +146,8 @@ public class ItemIIWeaponUpgrade extends ItemIISubItemsBase<WeaponUpgrade> imple
 				"gyroscopic_stabilizer", "electric_firing_motor"),
 
 		//--- Shotgun ---//
-		//SHOTGUN_REVOLVER_DRUM_MAGAZINE(WeaponType.SHOTGUN),
+		SHOTGUN_SAWED_OFF_BARREL(WeaponType.SHOTGUN, "shotgun_sawed_off_barrel"),
+		SHOTGUN_REVOLVER_DRUM_MAGAZINE(WeaponType.SHOTGUN, "shotgun_revolver_drum_magazine"),
 
 		//--- Autorevolver ---//
 //
@@ -160,7 +161,7 @@ public class ItemIIWeaponUpgrade extends ItemIISubItemsBase<WeaponUpgrade> imple
 
 		//--- Pistol ---//
 
-		SMG_MAG_CONVERTER_KIT(WeaponType.PISTOL, "smg_conversion_kit");
+		SMG_MAG_CONVERTER_KIT(WeaponType.PISTOL);
 
 		public final ImmutableSet<WeaponType> toolset;
 		private final BiPredicate<ItemStack, ItemStack> applyCheck;

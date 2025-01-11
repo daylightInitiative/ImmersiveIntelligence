@@ -42,9 +42,9 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 {
 	private MTLTextureRemapper handmadeRemapper;
 	private MTLTextureRemapper skinRemapper;
-	//private AMTCrossVariantReference<AMTBullet> bullet, casing;
+	private AMTCrossVariantReference<AMTBullet> bullet, casing;
 
-	private IIAnimationCachedMap loadBullet, handAngle, handVisibility, offhandVisibility;
+	private IIAnimationCachedMap loadBullet, handAngle, handVisibility, offhandVisibility, shellEject, shellLoadStartEnd, fire;
 	private float swingProgress = 0;
 
 	public ShotgunRenderer()
@@ -145,13 +145,7 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 				GlStateManager.rotate(preciseAim*-7.75f, 0, 1, 0);
 				GlStateManager.rotate(preciseAim*-5f, 1, 0, 0);
 
-				if(item.hasIIUpgrades(stack, WeaponUpgrade.SCOPE))
-				{
-					GlStateManager.translate(0, preciseAim*-0.1, preciseAim*1.5);
-					GlStateManager.rotate(5*preciseAim, 1, 0, 0);
-				}
-				else
-					GlStateManager.translate(0, 0, preciseAim*0.35);
+				GlStateManager.translate(0, 0, preciseAim*0.35);
 
 				if(recoil > 0)
 					GlStateManager.translate(0, 0, recoil*0.25);
@@ -165,6 +159,8 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 
 			handAngle.apply(preciseAim);
 		}
+
+		(fire).apply(gui?0: (1f-((firing-partialTicks)/(item.getFireDelay(stack, nbt)))));
 
 		float v = IIAnimationUtils.getAnimationProgress(
 				reloading,
@@ -183,21 +179,23 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 
 		if(reloading > 0)
 		{
+			shellLoadStartEnd.apply(v);
 			if(!semiAuto)
 			{
-				//this.bullet.get().withStack(nbt.getItemStack("found"), BulletState.BULLET_UNUSED);
+				this.bullet.get().withStack(nbt.getItemStack("found"), BulletState.BULLET_UNUSED);
 				loadBullet.apply(v);
 			}
+			shellLoadStartEnd.apply(v);
 		}
 		else if(handRender)
 		{
 			ItemStack b = ammoHandler.getNextAmmo(stack, nbt, false);
-			//this.bullet.get().withStack(b, BulletState.BULLET_UNUSED);
-			//this.casing.get().withStack(b, BulletState.CASING);
+			this.bullet.get().withStack(b, BulletState.BULLET_UNUSED);
+			this.casing.get().withStack(b, BulletState.CASING);
 		}
 
 		if(gui)
-			//IIAnimationUtils.setModelVisibility(this.casing.get(), false);
+			IIAnimationUtils.setModelVisibility(this.casing.get(), false);
 
 		if(transform==TransformType.FIRST_PERSON_LEFT_HAND)
 			offhandVisibility.apply(0);
@@ -247,16 +245,19 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 				)
 				.build();
 
-		//this.bullet = new AMTCrossVariantReference<>("bullet", this.model);
-		//this.casing = new AMTCrossVariantReference<>("casing_fired", this.model);
+		this.bullet = new AMTCrossVariantReference<>("bullet", this.model);
+		this.casing = new AMTCrossVariantReference<>("casing_fired", this.model);
 
 		//add upgrade visibility animations
 		loadUpgrades(model, ResLoc.of(animationRes, "upgrades/"));
 
-		loadBullet = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "load_bullet"));
-		handAngle = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "hand"));
+		fire = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "fire"));
+		shellLoadStartEnd = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "shell_load_start_end"));
+		shellEject = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "shell_eject"));
+		loadBullet = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "shell_load"));
+		handAngle = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "hand_main"));
 		handVisibility = IIAnimationCachedMap.create(this.model, new ResourceLocation(ImmersiveIntelligence.MODID, "gun_hand_visibility"));
-		offhandVisibility = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "offhand"));
+		offhandVisibility = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "hand_off"));
 	}
 
 	@Override
