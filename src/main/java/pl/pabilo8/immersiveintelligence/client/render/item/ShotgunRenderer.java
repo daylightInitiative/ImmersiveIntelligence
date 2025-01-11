@@ -214,7 +214,7 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 				.withModel(model)
 				.withModels(listUpgradeModels())
 				.withHeader(header)
-				.withHeader(IIAnimationLoader.loadHeader(new ResourceLocation(ImmersiveIntelligence.MODID, "models/item/weapons/shotgun/shotgun_upgrades.obj.amt")))
+				//.withHeader(IIAnimationLoader.loadHeader(new ResourceLocation(ImmersiveIntelligence.MODID, "models/item/weapons/shotgun/shotgun_upgrades.obj.amt")))
 				.withModelProvider(
 						(stack, combinedHeader) -> new AMT[]{
 								new AMTBullet("bullet", combinedHeader, AmmoRegistry.getModel(IIContent.itemAmmoShotgun))

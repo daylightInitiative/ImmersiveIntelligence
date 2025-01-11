@@ -33,7 +33,7 @@ import java.util.function.Function;
 @IIAmmoProjectile
 @GeneratedItemModels(itemName = "bullet_gun_3bcal", type = ItemModelType.ITEM_SIMPLE_AUTOREPLACED, valueSet = AmmoParts.class)
 @IIItemProperties(category = IICategory.WARFARE)
-public class ItemIIAmmoShotgun extends ItemIIAmmoBase<EntityAmmoProjectile>
+public class ItemIIAmmoShotgun extends ItemIIAmmoBase<EntityAmmoShotgunProjectile>
 {
 	public ItemIIAmmoShotgun()
 	{
@@ -108,8 +108,8 @@ public class ItemIIAmmoShotgun extends ItemIIAmmoBase<EntityAmmoProjectile>
 
 	@Nonnull
 	@SideOnly(Side.CLIENT)
-	public Function<ItemIIAmmoBase<EntityAmmoProjectile>,
-			IAmmoModel<ItemIIAmmoBase<EntityAmmoProjectile>, EntityAmmoProjectile>> get3DModel()
+	public Function<ItemIIAmmoBase<EntityAmmoShotgunProjectile>,
+			IAmmoModel<ItemIIAmmoBase<EntityAmmoShotgunProjectile>, EntityAmmoShotgunProjectile>> get3DModel()
 	{
 		return ModelAmmoProjectile::createProjectileModel;
 	}

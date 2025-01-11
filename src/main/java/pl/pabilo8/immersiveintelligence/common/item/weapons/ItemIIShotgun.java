@@ -203,8 +203,8 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	public float getVerticalRecoil(ItemStack weapon, EasyNBT nbt, boolean isAimed)
 	{
-		if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
-			return (isAimed?0.75f: 1f)*1.55f;
+		//if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
+			//return (isAimed?0.75f: 1f)*1.55f;
 		return (isAimed?0.5f: 1f)*Shotgun.recoilVertical;
 	}
 
@@ -229,8 +229,8 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	protected float getVelocityModifier(ItemStack weapon, EasyNBT nbt, ItemStack ammo)
 	{
-		if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
-			return 1.5f;
+		//if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
+			//return 2.0f;
 		return 1.75f;
 	}
 }

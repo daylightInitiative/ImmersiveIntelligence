@@ -146,7 +146,7 @@ public class ItemIIWeaponUpgrade extends ItemIISubItemsBase<WeaponUpgrade> imple
 				"gyroscopic_stabilizer", "electric_firing_motor"),
 
 		//--- Shotgun ---//
-		SHOTGUN_SAWED_OFF_BARREL(WeaponType.SHOTGUN, "shotgun_sawed_off_barrel"),
+		//SHOTGUN_SAWED_OFF_BARREL(WeaponType.SHOTGUN, "shotgun_sawed_off_barrel"),
 		SHOTGUN_REVOLVER_DRUM_MAGAZINE(WeaponType.SHOTGUN, "shotgun_revolver_drum_magazine"),
 
 		//--- Autorevolver ---//

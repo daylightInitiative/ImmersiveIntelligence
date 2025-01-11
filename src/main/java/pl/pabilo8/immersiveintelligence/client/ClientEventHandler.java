@@ -177,6 +177,21 @@ public class ClientEventHandler implements ISelectiveResourceReloadListener
 			IIModelRegistry.INSTANCE.reloadRegisteredModels();
 	}
 
+	/*@SubscribeEvent
+    public boolean onShotgunProjectileHitShield()
+	{
+		ignoredEntities.add(hit.entityHit);
+		if(hit.entityHit==this) //can't touch this
+			return false;
+		Entity other = hit.entityHit;
+
+		if (other instanceof EntityLivingBase)
+		{
+			EntityLivingBase mob = (EntityLivingBase) other;
+			if(mob.getActiveItemStack().getItem().isShield(mob.getActiveItemStack(), mob)) mob.getActiveItemStack().damageItem(1000, mob);
+		}
+	}*/
+
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public void renderAdditionalBlockBounds(DrawBlockHighlightEvent event)
 	{
