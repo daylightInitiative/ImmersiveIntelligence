@@ -236,10 +236,12 @@ public class ItemIIDrillHead extends ItemIISubItemsBase<DrillHeads> implements I
 		}
 		Builder<BlockPos> b = ImmutableList.builder();
 		for(int dd = 0; dd < depth; dd++)
-			for(int dw = 0; dw < diameter; dw++)
-				for(int dh = 0; dh < diameter; dh++)
+			for(int dw = 0; dw < 3; dw++)
+				for(int dh = 0; dh < 3; dh++)
 				{
-					BlockPos pos = startPos.add((side.getAxis()==Axis.X?dd: dw), (side.getAxis()==Axis.Y?dd: dh), (side.getAxis()==Axis.Y?dh: side.getAxis()==Axis.X?dw: dd));
+					BlockPos pos = startPos.add((side.getAxis()==Axis.X?dd: dw), (side.getAxis()==Axis.Y?dd: dh+1), (side.getAxis()==Axis.Y?dh: side.getAxis()==Axis.X?dw: dd));
+
+
 					if(pos.equals(mop.getBlockPos()))
 						continue;
 					state = world.getBlockState(pos);
