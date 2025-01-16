@@ -139,6 +139,7 @@ public class ItemIIShotgun extends ItemIIGunBase
 			handmade.setTagCompound(EasyNBT.newNBT().withBoolean(HANDMADE, true).unwrap());
 			list.add(handmade);
 		}
+		/*
 		if(this.isInCreativeTab(tab))
 		{
 			list.add(new ItemStack(this, 1));
@@ -146,7 +147,7 @@ public class ItemIIShotgun extends ItemIIGunBase
 			ItemStack sawedOff = new ItemStack(this, 1, 1);
 			sawedOff.setTagCompound(EasyNBT.newNBT().withBoolean(SAWED_OFF, true).unwrap());
 			list.add(sawedOff);
-		}
+		}*/
 	}
 
 	@Override
@@ -154,8 +155,8 @@ public class ItemIIShotgun extends ItemIIGunBase
 	{
 		if(ItemNBTHelper.hasKey(stack, HANDMADE))
 			return "item.immersiveintelligence.shotgun_handmade";
-		else if(ItemNBTHelper.hasKey(stack, SAWED_OFF))
-			return "item.immersiveintelligence.shotgun_sawed_off";
+		//else if(ItemNBTHelper.hasKey(stack, SAWED_OFF))
+			//return "item.immersiveintelligence.shotgun_sawed_off";
 		else
 			return super.getUnlocalizedName(stack);
 	}
@@ -230,7 +231,7 @@ public class ItemIIShotgun extends ItemIIGunBase
 	protected float getVelocityModifier(ItemStack weapon, EasyNBT nbt, ItemStack ammo)
 	{
 		//if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
-			//return 2.0f;
+			//return 2.5f;
 		return 1.75f;
 	}
 }
