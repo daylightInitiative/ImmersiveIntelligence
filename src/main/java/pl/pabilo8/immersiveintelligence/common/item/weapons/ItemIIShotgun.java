@@ -5,15 +5,21 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import pl.pabilo8.immersiveintelligence.ImmersiveIntelligence;
+import pl.pabilo8.immersiveintelligence.api.utils.tools.IAdvancedZoomTool;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Weapons.Shotgun;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
 import pl.pabilo8.immersiveintelligence.common.IISounds;
+import pl.pabilo8.immersiveintelligence.common.item.ammo.ItemIIBulletMagazine.Magazines;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIWeaponUpgrade.WeaponUpgrade;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ammohandler.AmmoHandler;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ammohandler.AmmoHandlerList;
+import pl.pabilo8.immersiveintelligence.common.item.weapons.ammohandler.AmmoHandlerMagazine;
 import pl.pabilo8.immersiveintelligence.common.util.AdvancedSounds.RangedSound;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 import pl.pabilo8.immersiveintelligence.common.util.item.IICategory;
@@ -22,27 +28,39 @@ import pl.pabilo8.immersiveintelligence.common.util.item.IIItemEnum.IIItemProper
 import javax.annotation.Nullable;
 
 @IIItemProperties(category = IICategory.WARFARE)
-public class ItemIIShotgun extends ItemIIGunBase
+public class ItemIIShotgun extends ItemIIGunBase implements IAdvancedZoomTool
 {
 	//--- NBT Values Reference ---//
 	public static final String HANDMADE = "handmade";
-	public static final String SAWED_OFF = "sawed_off";
+
+	//--- Scope Overlay Textures ---//
+	public static final ResourceLocation OVERLAY_SCOPE = new ResourceLocation(ImmersiveIntelligence.MODID,
+			"textures/gui/item/machinegun/scope.png");
 
 	//--- Ammunition Handler ---//
 	public static final int MAG_SIZE = Shotgun.clipSize;
+	public static final int MAG_SIZE_EXTENDED = Shotgun.extendedClipSize + MAG_SIZE;
 	private final AmmoHandlerList ammoHandler;
-	//private final AmmoHandlerMagazine ammoHandlerSemiAuto;
+	private final AmmoHandlerMagazine ammoHandlerSemiAuto;
+
+	private int getMagSize()
+	{
+		if (hasIIUpgrade(new ItemStack(IIContent.itemShotgun), WeaponUpgrade.SHOTGUN_EXTENDED_MAGAZINE))
+			return 8;
+		return 4;
+	}
 
 	public ItemIIShotgun()
 	{
 		super("shotgun");
-		ammoHandler = new AmmoHandlerList(this, BULLETS, IIContent.itemAmmoShotgun, MAG_SIZE)
+		ammoHandler = new AmmoHandlerList(this, BULLETS, IIContent.itemAmmoShotgun, getMagSize())
 		{
 			@Nullable
 			@Override
 			protected SoundEvent getStartLoadingSound(ItemStack weapon, EasyNBT nbt)
 			{
-				return IISounds.shotgunLoadStart;
+				//return IISounds.shotgunLoadStart;
+				return null;
 			}
 
 			@Nullable
@@ -59,7 +77,6 @@ public class ItemIIShotgun extends ItemIIGunBase
 				return IISounds.shotgunLoadEnd;
 			}
 		};
-		/*
 		ammoHandlerSemiAuto = new AmmoHandlerMagazine(this, MAGAZINE, IIContent.itemAmmoShotgun)
 		{
 			@Override
@@ -79,10 +96,9 @@ public class ItemIIShotgun extends ItemIIGunBase
 			@Override
 			protected SoundEvent getReloadSound(ItemStack weapon, EasyNBT nbt)
 			{
-				return IISounds.rifleReloadMagazine;
+				return IISounds.shotgunLoad;
 			}
 		};
-		*/
 	}
 
 	@Override
@@ -101,30 +117,29 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	public AmmoHandler getAmmoHandler(ItemStack weapon)
 	{
-		//return hasIIUpgrade(weapon, WeaponUpgrade.SEMI_AUTOMATIC)?ammoHandlerSemiAuto: ammoHandler;
-		return ammoHandler;
+		return hasIIUpgrade(weapon, WeaponUpgrade.SHOTGUN_REVOLVER_DRUM_MAGAZINE)?ammoHandlerSemiAuto: ammoHandler;
+		//return ammoHandler;
 	}
 
 	@Override
 	protected FireModeType getFireMode(ItemStack weapon)
 	{
-		//return hasIIUpgrade(weapon, WeaponUpgrade.SEMI_AUTOMATIC)?FireModeType.AUTOMATIC: FireModeType.SINGULAR;
-		return FireModeType.SINGULAR;
+		return hasIIUpgrade(weapon, WeaponUpgrade.SHOTGUN_REVOLVER_DRUM_MAGAZINE)?FireModeType.AUTOMATIC: FireModeType.SINGULAR;
+		//return FireModeType.SINGULAR;
 	}
 
 	@Override
 	protected double getEquipSpeed(ItemStack weapon, EasyNBT nbt)
 	{
-		//return hasIIUpgrade(weapon, WeaponUpgrade.SEMI_AUTOMATIC)?
-				//1.0625: 0.9;
-		return 0.9;
+		return hasIIUpgrade(weapon, WeaponUpgrade.SHOTGUN_REVOLVER_DRUM_MAGAZINE) ? 1.0625: 0.9;
+		//return 0.9;
 	}
 
 	@Override
 	public int getFireDelay(ItemStack weapon, EasyNBT nbt)
 	{
-		//return hasIIUpgrade(weapon, WeaponUpgrade.SEMI_AUTOMATIC)?Shotgun.bulletFireTimeSemiAuto: Shotgun.bulletFireTime;
-		return Shotgun.bulletFireTime;
+		return hasIIUpgrade(weapon, WeaponUpgrade.SHOTGUN_REVOLVER_DRUM_MAGAZINE)?Shotgun.bulletFireTimeSemiAuto: Shotgun.bulletFireTime;
+		//return Shotgun.bulletFireTime;
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -139,15 +154,6 @@ public class ItemIIShotgun extends ItemIIGunBase
 			handmade.setTagCompound(EasyNBT.newNBT().withBoolean(HANDMADE, true).unwrap());
 			list.add(handmade);
 		}
-		/*
-		if(this.isInCreativeTab(tab))
-		{
-			list.add(new ItemStack(this, 1));
-
-			ItemStack sawedOff = new ItemStack(this, 1, 1);
-			sawedOff.setTagCompound(EasyNBT.newNBT().withBoolean(SAWED_OFF, true).unwrap());
-			list.add(sawedOff);
-		}*/
 	}
 
 	@Override
@@ -155,8 +161,6 @@ public class ItemIIShotgun extends ItemIIGunBase
 	{
 		if(ItemNBTHelper.hasKey(stack, HANDMADE))
 			return "item.immersiveintelligence.shotgun_handmade";
-		//else if(ItemNBTHelper.hasKey(stack, SAWED_OFF))
-			//return "item.immersiveintelligence.shotgun_sawed_off";
 		else
 			return super.getUnlocalizedName(stack);
 	}
@@ -172,7 +176,7 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	protected RangedSound getFireSound(ItemStack weapon, EasyNBT easyNBT)
 	{
-		//return hasIIUpgrade(weapon, WeaponUpgrade.SEMI_AUTOMATIC)?IISounds.rifleShot: IISounds.rifleBoltShot;
+		//return hasIIUpgrade(weapon, WeaponUpgrade.SHOTGUN_REVOLVER_DRUM_MAGAZINE)?IISounds.shotgunShot: IISounds.shotgunShot;
 		return IISounds.shotgunShot;
 	}
 
@@ -191,8 +195,8 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	public int getReloadTime(ItemStack weapon, ItemStack loaded, EasyNBT nbt)
 	{
-		//return hasIIUpgrades(weapon, WeaponUpgrade.SEMI_AUTOMATIC)?Shotgun.magazineReloadTime: Shotgun.bulletReloadTime;
-		return Shotgun.bulletReloadTime;
+		return hasIIUpgrades(weapon, WeaponUpgrade.SHOTGUN_REVOLVER_DRUM_MAGAZINE)?Shotgun.magazineReloadTime: Shotgun.bulletReloadTime;
+		//return Shotgun.bulletReloadTime;
 	}
 
 	@Override
@@ -204,8 +208,8 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	public float getVerticalRecoil(ItemStack weapon, EasyNBT nbt, boolean isAimed)
 	{
-		//if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
-			//return (isAimed?0.75f: 1f)*1.55f;
+		if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
+			return (isAimed?0.75f: 1f)*1.55f;
 		return (isAimed?0.5f: 1f)*Shotgun.recoilVertical;
 	}
 
@@ -224,14 +228,47 @@ public class ItemIIShotgun extends ItemIIGunBase
 	@Override
 	protected float getGunfireParticleSize(ItemStack weapon, EasyNBT nbt)
 	{
+		if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
+			return 2.5f;
 		return 1.5f;
 	}
 
 	@Override
 	protected float getVelocityModifier(ItemStack weapon, EasyNBT nbt, ItemStack ammo)
 	{
-		//if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
-			//return 2.5f;
+		if(nbt.hasKey(WeaponUpgrade.SHOTGUN_SAWED_OFF_BARREL))
+			return 2.5f;
 		return 1.75f;
+	}
+
+	//--- IAdvancedZoomTool ---//
+
+	@Override
+	public boolean shouldZoom(ItemStack stack, EntityPlayer player)
+	{
+		boolean isAimed = ItemNBTHelper.getInt(stack, AIMING) > getAimingTime(stack, EasyNBT.wrapNBT(getUpgrades(stack)))*0.75;
+		return isAimed&&hasIIUpgrade(stack, WeaponUpgrade.SCOPE);
+	}
+
+	@Override
+	public float getZoomProgress(ItemStack stack, EntityPlayer player)
+	{
+		int aiming = ItemNBTHelper.getInt(stack, AIMING);
+		int fullTime = getAimingTime(stack, EasyNBT.wrapNBT(getUpgrades(stack)));
+
+		return MathHelper.clamp(((aiming/(float)fullTime)-0.75f), 0, 0.25f)/0.25f;
+	}
+
+	@Override
+	public float[] getZoomSteps(ItemStack stack, EntityPlayer player)
+	{
+		return new float[]{0.125f, 0.25f};
+	}
+
+	@SideOnly(Side.CLIENT)
+	@Override
+	public ResourceLocation getZoomOverlayTexture(ItemStack stack, EntityPlayer player)
+	{
+		return OVERLAY_SCOPE;
 	}
 }

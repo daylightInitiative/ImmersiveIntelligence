@@ -415,7 +415,7 @@ public class IISounds
 	@ModSound(sounds = {"weapons/shotgun/load_start"}, subtitle = "shotgun_load")
 	public static SoundEvent shotgunLoadStart = registerSound("shotgun_load_start");
 
-	@ModSound(sounds = {"weapons/shotgun/shotgun_shell_insert{0..4}"}, subtitle = "*")
+	@ModSound(sounds = {"weapons/shotgun/shotgun_shell_insert{1..4}"}, subtitle = "*")
 	public static SoundEvent shotgunLoad = registerSound("shotgun_load");
 
 	@ModSound(sounds = {"weapons/shotgun/load_end"}, subtitle = "shotgun_load")

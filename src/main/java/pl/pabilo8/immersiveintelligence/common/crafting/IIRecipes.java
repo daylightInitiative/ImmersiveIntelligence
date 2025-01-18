@@ -476,6 +476,9 @@ public class IIRecipes
 		addMetalPressBullet(Casing.SMG_1BCAL,
 				new IngredientStack("ingotBrass"),
 				PressMolds.SUBMACHINEGUN, 1200);
+		addMetalPressBullet(Casing.SHOTGUN_3BCAL,
+				new IngredientStack("ingotBrass"),
+				PressMolds.SHOTGUN, 1200);
 
 		addMetalPressBullet(Casing.NAVAL_MINE,
 				new IngredientStack("plateSteel", 4),

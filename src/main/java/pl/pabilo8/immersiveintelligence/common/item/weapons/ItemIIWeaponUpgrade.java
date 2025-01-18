@@ -96,7 +96,7 @@ public class ItemIIWeaponUpgrade extends ItemIISubItemsBase<WeaponUpgrade> imple
 		//Slows down mg setting up time, but decreases recoil
 		PRECISE_BIPOD(WeaponType.MACHINEGUN, "hasty_bipod", "tripod"),
 		//3 x Magnification
-		SCOPE(new WeaponType[]{WeaponType.MACHINEGUN, WeaponType.AUTOREVOLVER, WeaponType.ASSAULT_RIFLE, WeaponType.RIFLE, WeaponType.PISTOL}, "infrared_scope"),
+		SCOPE(new WeaponType[]{WeaponType.MACHINEGUN, WeaponType.AUTOREVOLVER, WeaponType.ASSAULT_RIFLE, WeaponType.RIFLE, WeaponType.PISTOL, WeaponType.SHOTGUN}, "infrared_scope"),
 		//Allows nightvision + 2 x magnification, uses energy from player's backpack
 		INFRARED_SCOPE(new WeaponType[]{WeaponType.MACHINEGUN, WeaponType.ASSAULT_RIFLE},
 				(stack, nbt) -> {
@@ -146,8 +146,9 @@ public class ItemIIWeaponUpgrade extends ItemIISubItemsBase<WeaponUpgrade> imple
 				"gyroscopic_stabilizer", "electric_firing_motor"),
 
 		//--- Shotgun ---//
-		//SHOTGUN_SAWED_OFF_BARREL(WeaponType.SHOTGUN, "shotgun_sawed_off_barrel"),
-		SHOTGUN_REVOLVER_DRUM_MAGAZINE(WeaponType.SHOTGUN, "shotgun_revolver_drum_magazine"),
+		SHOTGUN_SAWED_OFF_BARREL(WeaponType.SHOTGUN, new String[]{"shotgun_revolver_drum_magazine", "shotgun_extended_magazine"}),
+		SHOTGUN_REVOLVER_DRUM_MAGAZINE(WeaponType.SHOTGUN, "shotgun_extended_magazine"),
+		SHOTGUN_EXTENDED_MAGAZINE(WeaponType.SHOTGUN, "shotgun_revolver_drum_magazine"),
 
 		//--- Autorevolver ---//
 //

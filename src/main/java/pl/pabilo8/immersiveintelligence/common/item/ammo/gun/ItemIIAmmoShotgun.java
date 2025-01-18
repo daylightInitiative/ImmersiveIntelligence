@@ -103,7 +103,7 @@ public class ItemIIAmmoShotgun extends ItemIIAmmoBase<EntityAmmoShotgunProjectil
 	@Override
 	public CoreType[] getAllowedCoreTypes()
 	{
-		return new CoreType[] {CoreType.PIERCING, CoreType.CLUSTER, CoreType.CANISTER, CoreType.PIERCING_SABOT, CoreType.SHAPED};
+		return new CoreType[] {CoreType.PIERCING, CoreType.CLUSTER, CoreType.CANISTER};
 	}
 
 	@Nonnull

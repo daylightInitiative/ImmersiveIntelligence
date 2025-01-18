@@ -69,6 +69,27 @@ public class EntityAmmoShotgunProjectile extends EntityAmmoProjectile
 	}
 
 	@Override
+	protected boolean handleEntityDamage(RayTraceResult hit)
+	{
+		super.handleEntityDamage(hit);
+		ignoredEntities.add(hit.entityHit);
+		if(hit.entityHit==this) //can't touch this
+			return false;
+		Entity other = hit.entityHit;
+
+		if (other instanceof EntityLivingBase)
+		{
+			EntityLivingBase mob = (EntityLivingBase) other;
+			if(mob.getActiveItemStack().getItem().isShield(mob.getActiveItemStack(), mob))
+			{
+				mob.getActiveItemStack().damageItem(1000, mob);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
 	protected boolean shouldDecay()
 	{
 		return posY < 0;
