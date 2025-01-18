@@ -222,7 +222,7 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 										.withProperties(IIContent.ammoCoreSteel, CoreType.BIRDSHOT, -1),
 								new AMTBullet("casing_fired", combinedHeader, AmmoRegistry.getModel(IIContent.itemAmmoShotgun))
 										.withState(BulletState.CASING),
-								new AMTParticle("muzzle_flash", combinedHeader)
+								new AMTParticle("muzzle_flash1", combinedHeader)
 										.setParticle(IIParticles.PARTICLE_GUNFIRE),
 								new AMTHand("hand", combinedHeader, EnumHand.OFF_HAND),
 								new AMTHand("hand_right", combinedHeader, EnumHand.MAIN_HAND)
@@ -286,8 +286,8 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 	@Override
 	public boolean renderCrosshair(ItemStack stack, EnumHand hand)
 	{
-		if(item.hasIIUpgrade(stack, WeaponUpgrade.SCOPE))
-			return false;
+		//if(item.hasIIUpgrade(stack, WeaponUpgrade.SCOPE))
+			//return false;
 
 		return ItemNBTHelper.getInt(stack, ItemIIShotgun.AIMING) > item.getAimingTime(stack, EasyNBT.wrapNBT(stack))*0.85;
 	}
