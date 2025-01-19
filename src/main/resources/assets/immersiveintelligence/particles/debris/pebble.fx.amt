@@ -1,0 +1,9 @@
+{
+  "type": "ParticleModel",
+  "models": ["pebble1.obj","pebble2.obj","pebble3.obj","pebble4.obj","pebble5.obj","pebble6.obj"],
+  "life_time": 80,
+  "draw_stage": "custom_additive",
+  "programs": [
+    "shockwave_transition"
+  ]
+}

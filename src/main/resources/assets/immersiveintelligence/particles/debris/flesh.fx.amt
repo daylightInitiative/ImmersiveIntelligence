@@ -1,0 +1,9 @@
+{
+  "type": "ParticleModel",
+  "models": ["flesh1.obj","flesh2.obj","flesh3.obj","flesh4.obj","flesh5.obj","flesh6.obj"],
+  "life_time": 80,
+  "draw_stage": "custom_additive",
+  "programs": [
+    "shockwave_transition"
+  ]
+}
