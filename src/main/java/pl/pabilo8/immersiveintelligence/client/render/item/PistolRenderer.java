@@ -67,7 +67,7 @@ public class PistolRenderer extends IIUpgradableItemRendererAMT<ItemIIPistol> im
 
 		Matrix4 fpp = new Matrix4()
 				.scale(0.625, 0.625, 0.625)
-				.translate(1f-0.25f, -1f, 0)
+				.translate(1f-0.2f, -1f, 0)
 				.rotate(Math.toRadians(7.5f), 0, 1, 0)
 				.rotate(Math.toRadians(5), 1, 0, 0)
 				.translate(0, 0, -0.5f);

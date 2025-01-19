@@ -443,11 +443,11 @@ item.immersiveintelligence.revolver_1bcal.core.name=Revolver Bullet Core
 item.immersiveintelligence.revolver_1bcal.bullet.name=Revolver Bullet
 
 item.immersiveintelligence.ammo_casing.shotgun_3bcal.name=Shotgun Shell Casing
-item.immersiveintelligence.shotgun_3bcal.core.name=Shotgun Bullet Core
-item.immersiveintelligence.shotgun_3bcal.bullet.name=Shotgun Shell
+item.immersiveintelligence.gun_3bcal.core.name=Shotgun Bullet Core
+item.immersiveintelligence.gun_3bcal.bullet.name=Shotgun Shell
 
 item.immersiveintelligence.ammo_casing.pistol_1bcal.name=Pistol Shell Casing
-item.immersiveintelligence.gun_3bcal.pistol_1bcal.name=Pistol Bullet Core
+item.immersiveintelligence..pistol_1bcal.name=Pistol Bullet Core
 item.immersiveintelligence.pistol_1bcal.bullet.name=Pistol Bullet
 
 item.immersiveintelligence.ammo_casing.autocannon_3bcal.name=Autocannon Shell Casing

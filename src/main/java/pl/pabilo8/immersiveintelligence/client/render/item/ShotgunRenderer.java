@@ -26,6 +26,7 @@ import pl.pabilo8.immersiveintelligence.client.util.amt.AMTBullet.BulletState;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Weapons.AssaultRifle;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIGunBase;
+import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIRifle;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIShotgun;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIWeaponUpgrade.WeaponUpgrade;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ammohandler.AmmoHandler;
@@ -137,7 +138,7 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 			{
 				//gun "push" towards player
 				float recoil = Math.min(
-						(nbt.getFloat(ItemIIShotgun.RECOIL_V)+nbt.getFloat(ItemIIShotgun.RECOIL_H))
+						(nbt.getFloat(ItemIIRifle.RECOIL_V)+nbt.getFloat(ItemIIRifle.RECOIL_H))
 								/(AssaultRifle.maxRecoilHorizontal+AssaultRifle.maxRecoilVertical),
 						1f);
 
@@ -145,7 +146,13 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 				GlStateManager.rotate(preciseAim*-7.75f, 0, 1, 0);
 				GlStateManager.rotate(preciseAim*-5f, 1, 0, 0);
 
-				GlStateManager.translate(0, 0, preciseAim*0.35);
+				if(item.hasIIUpgrades(stack, WeaponUpgrade.SCOPE))
+				{
+					GlStateManager.translate(0, preciseAim*-0.1, preciseAim*1.5);
+					GlStateManager.rotate(5*preciseAim, 1, 0, 0);
+				}
+				else
+					GlStateManager.translate(0, 0, preciseAim*0.35);
 
 				if(recoil > 0)
 					GlStateManager.translate(0, 0, recoil*0.25);
@@ -286,8 +293,8 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 	@Override
 	public boolean renderCrosshair(ItemStack stack, EnumHand hand)
 	{
-		//if(item.hasIIUpgrade(stack, WeaponUpgrade.SCOPE))
-			//return false;
+		if(item.hasIIUpgrade(stack, WeaponUpgrade.SCOPE))
+			return false;
 
 		return ItemNBTHelper.getInt(stack, ItemIIShotgun.AIMING) > item.getAimingTime(stack, EasyNBT.wrapNBT(stack))*0.85;
 	}
