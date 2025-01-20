@@ -1,6 +1,7 @@
 package pl.pabilo8.immersiveintelligence.client.fx.utils;
 
 import blusunrize.immersiveengineering.client.ClientUtils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -8,10 +9,11 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
-import pl.pabilo8.immersiveintelligence.client.fx.particles.IIParticle;
+import pl.pabilo8.immersiveintelligence.client.fx.particles.AbstractParticle;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Graphics;
 
 import java.util.*;
@@ -40,7 +42,7 @@ public class ParticleSystem
 
 	//--- Fields ---//
 	private int particleAmount = 0;
-	private final Map<DrawStages, Queue<IIParticle>> particles = new HashMap<DrawStages, Queue<IIParticle>>()
+	private final Map<ParticleDrawStages, Queue<AbstractParticle>> particles = new HashMap<ParticleDrawStages, Queue<AbstractParticle>>()
 	{
 		@Override
 		public void clear()
@@ -49,7 +51,7 @@ public class ParticleSystem
 			particleAmount = 0;
 		}
 	};
-	private final TreeMap<Integer, List<IIParticle>> scheduledParticles = new TreeMap<>();
+	private final Int2ObjectOpenHashMap<List<AbstractParticle>> scheduledParticles = new Int2ObjectOpenHashMap<>();
 
 	//--- Update and Rendering ---//
 
@@ -68,26 +70,36 @@ public class ParticleSystem
 
 		synchronized(scheduledParticles)
 		{
-			//spawn particles scheduled for this tick
-			List<IIParticle> current = scheduledParticles.remove(0);
+			//Spawn particles scheduled for this tick
+			List<AbstractParticle> current = scheduledParticles.remove(0);
 			if(current!=null)
 				current.forEach(this::privateAddEffect);
-			//cycle through the scheduled particles and decrement their timers
-			scheduledParticles.keySet().forEach(i -> scheduledParticles.put(i-1, scheduledParticles.remove(i)));
+
+			//Cycle through the scheduled particles and decrement their timers
+			int[] keys = scheduledParticles.keySet().toIntArray();
+			Arrays.sort(keys);
+			for(int i = keys.length-1; i >= 0; i--)
+			{
+				int key = keys[i];
+				List<AbstractParticle> particles = scheduledParticles.remove(key);
+				int newKey = key-1;
+				if(newKey >= 0)
+					scheduledParticles.put(newKey, particles);
+			}
 		}
 
 		int count = 0;
-		//go through every particle indiscriminately
+		//Go through every particle indiscriminately
 		synchronized(particles)
 		{
-			for(Queue<IIParticle> particleQueue : particles.values())
+			for(Queue<AbstractParticle> particleQueue : particles.values())
 			{
-				for(Iterator<IIParticle> iterator = particleQueue.iterator(); iterator.hasNext(); )
+				for(Iterator<AbstractParticle> iterator = particleQueue.iterator(); iterator.hasNext(); )
 				{
-					//particles cost a lot less to update than to render, so we can update more of them
+					//Particles cost a lot less to update than to render, so we can update more of them
 					if(++count > Graphics.maxSimulatedParticles)
 						break;
-					IIParticle particle = iterator.next();
+					AbstractParticle particle = iterator.next();
 					particle.onUpdate();
 					if(!particle.isAlive())
 					{
@@ -100,8 +112,10 @@ public class ParticleSystem
 		}
 	}
 
-	private void privateAddEffect(IIParticle particle)
+	private void privateAddEffect(AbstractParticle particle)
 	{
+		if(particleAmount > Graphics.maxAllowedParticles)
+			return;
 		particles.computeIfAbsent(particle.getDrawStage(), i -> new ArrayDeque<>()).add(particle);
 		particleAmount++;
 	}
@@ -140,11 +154,11 @@ public class ParticleSystem
 			drawParticles:
 			synchronized(particles)
 			{
-				for(Map.Entry<DrawStages, Queue<IIParticle>> particleStage : particles.entrySet())
+				for(Map.Entry<ParticleDrawStages, Queue<AbstractParticle>> particleStage : particles.entrySet())
 				{
 					int particleCount = 0;
 					particleStage.getKey().prepareRender(buffer, partialTicks);
-					for(IIParticle particle : particleStage.getValue())
+					for(AbstractParticle particle : particleStage.getValue())
 					{
 						if(++particleCount > Graphics.maxDrawnParticles)
 						{
@@ -152,6 +166,8 @@ public class ParticleSystem
 							particleStage.getKey().clear();
 							break drawParticles;
 						}
+						//TODO: 23.12.2024 should program be executed by particle or here, externally?
+						particle.preRender(partialTicks, x, xz, z, yz, xy);
 						particle.render(buffer, partialTicks, x, xz, z, yz, xy);
 					}
 					tess.draw();
@@ -177,11 +193,13 @@ public class ParticleSystem
 	 */
 	private static void updateParticleFields(float partialTicks, EntityPlayer player)
 	{
-		IIParticle.interpTicks = partialTicks;
-		IIParticle.interpPosX = player.lastTickPosX+(player.posX-player.lastTickPosX)*partialTicks;
-		IIParticle.interpPosY = player.lastTickPosY+(player.posY-player.lastTickPosY)*partialTicks;
-		IIParticle.interpPosZ = player.lastTickPosZ+(player.posZ-player.lastTickPosZ)*partialTicks;
-		IIParticle.cameraViewDir = player.getLook(partialTicks);
+		AbstractParticle.interpTicks = partialTicks;
+		AbstractParticle.interPos = new Vec3d(
+				player.lastTickPosX+(player.posX-player.lastTickPosX)*partialTicks,
+				player.lastTickPosY+(player.posY-player.lastTickPosY)*partialTicks,
+				player.lastTickPosZ+(player.posZ-player.lastTickPosZ)*partialTicks
+		);
+		AbstractParticle.cameraViewDir = player.getLook(partialTicks);
 	}
 
 	//--- External ---//
@@ -191,8 +209,10 @@ public class ParticleSystem
 	 *
 	 * @param particle the particle to add
 	 */
-	public void addEffect(IIParticle particle)
+	public void addEffect(AbstractParticle particle)
 	{
+		if(particleAmount > Graphics.maxAllowedParticles)
+			return;
 		synchronized(particles)
 		{
 			scheduledParticles.computeIfAbsent(0, i -> new ArrayList<>()).add(particle);
@@ -206,7 +226,7 @@ public class ParticleSystem
 	 * @param delay    the delay in ticks
 	 * @param <T>      the type of the particle
 	 */
-	public <T extends IIParticle> void scheduleEffect(T particle, int delay)
+	public <T extends AbstractParticle> void scheduleEffect(T particle, int delay)
 	{
 		synchronized(scheduledParticles)
 		{

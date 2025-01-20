@@ -23,7 +23,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
 import pl.pabilo8.immersiveintelligence.common.IIPotions;
-import pl.pabilo8.immersiveintelligence.common.IIUtils;
+import pl.pabilo8.immersiveintelligence.common.util.IIColor;
 import pl.pabilo8.immersiveintelligence.common.util.entity.IIEntityUtils;
 
 /**
@@ -75,7 +75,7 @@ public class EntityWhitePhosphorus extends EntityIEProjectile implements ILightE
 	@SideOnly(Side.CLIENT)
 	private void spawnTracerParticles()
 	{
-		ParticleRegistry.spawnTracerFX(getPositionVector(), IIEntityUtils.getEntityMotion(this), 0.2f, 0xffffff);
+		ParticleRegistry.spawnTracerFX(getPositionVector(), IIEntityUtils.getEntityMotion(this), 0.2f, IIColor.WHITE);
 	}
 
 	/**
@@ -103,8 +103,8 @@ public class EntityWhitePhosphorus extends EntityIEProjectile implements ILightE
 			cloud.addEffect(new PotionEffect(IEPotions.flammable, Math.round(180), 2));
 			cloud.addEffect(new PotionEffect(IEPotions.stunned, Math.round(80), 1));
 			cloud.addEffect(new PotionEffect(IEPotions.flashed, Math.round(120), 1));
-			cloud.setRadius(1.25f);
-			cloud.setDuration(Math.round(20f+(10f*Utils.RAND.nextFloat())));
+			cloud.setRadius(6f);
+			cloud.setDuration(Math.round(30f+(10f*Utils.RAND.nextFloat())));
 			cloud.setParticle(EnumParticleTypes.CLOUD);
 			world.spawnEntity(cloud);
 

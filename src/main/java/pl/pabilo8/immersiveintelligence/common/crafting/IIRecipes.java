@@ -17,7 +17,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockShulkerBox;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
@@ -51,6 +50,7 @@ import pl.pabilo8.immersiveintelligence.common.block.simple.BlockIIConcreteDecor
 import pl.pabilo8.immersiveintelligence.common.block.simple.BlockIIOre.Ores;
 import pl.pabilo8.immersiveintelligence.common.block.simple.BlockIISmallCrate.IIBlockTypes_SmallCrate;
 import pl.pabilo8.immersiveintelligence.common.item.ItemIIMinecart.Minecarts;
+import pl.pabilo8.immersiveintelligence.common.item.ItemIITracerPowder;
 import pl.pabilo8.immersiveintelligence.common.item.ammo.ItemIIAmmoBase;
 import pl.pabilo8.immersiveintelligence.common.item.ammo.ItemIIAmmoBase.AmmoParts;
 import pl.pabilo8.immersiveintelligence.common.item.ammo.ItemIIAmmoCasing.Casing;
@@ -68,7 +68,6 @@ import pl.pabilo8.immersiveintelligence.common.item.crafting.material.ItemIIMate
 import pl.pabilo8.immersiveintelligence.common.item.data.ItemIIFunctionalCircuit.Circuits;
 import pl.pabilo8.immersiveintelligence.common.item.mechanical.ItemIIMotorGear.MotorGear;
 import pl.pabilo8.immersiveintelligence.common.item.tools.backpack.ItemIIAdvancedPowerPack;
-import pl.pabilo8.immersiveintelligence.common.util.IIColor;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
 import pl.pabilo8.immersiveintelligence.common.util.item.ItemIIUpgradeableArmor;
 
@@ -82,6 +81,8 @@ import java.util.stream.Collectors;
 /**
  * @author Pabilo8
  * @since 22-03-2020
+ * @author Avalon
+ * @since 28-11-2024
  */
 public class IIRecipes
 {
@@ -136,7 +137,7 @@ public class IIRecipes
 		addConcreteRecipes();
 		addChemicalBathCleaningRecipes();
 
-		addColouringRecipes(recipeRegistry);
+		addColoringRecipes(recipeRegistry);
 		addChemicalPainterRecipes();
 
 		addPackerHandling();
@@ -214,22 +215,22 @@ public class IIRecipes
 
 	}
 
-	private static void addColouringRecipes(IForgeRegistry<IRecipe> registry)
+	private static void addColoringRecipes(IForgeRegistry<IRecipe> registry)
 	{
-		addColoringRecipe(registry, IIContent.itemTracerPowder, 0, "colour", "tracer_powder_colour");
-		addColoringRecipe(registry, IIContent.itemTracerPowder, 1, "colour", "flare_powder_colour");
+		addColoringRecipe(registry, IIContent.itemTracerPowder, 0, ItemIITracerPowder.NBT_TRACER_COLOUR, "tracer_powder_colour");
+		addColoringRecipe(registry, IIContent.itemTracerPowder, 1, ItemIITracerPowder.NBT_TRACER_COLOUR, "flare_powder_colour");
 
 		addColoringRecipe(registry, IIContent.itemAdvancedPowerPack, -1,
-				ItemIIAdvancedPowerPack.NBT_Colour, "advanced_powerpack_coloring");
+				ItemIIAdvancedPowerPack.NBT_COLOR, "advanced_powerpack_coloring");
 
 		addColoringRecipe(registry, IIContent.itemLightEngineerHelmet, -1,
-				ItemIIUpgradeableArmor.NBT_Colour, "light_engineer_armor_helmet_coloring");
+				ItemIIUpgradeableArmor.NBT_COLOR, "light_engineer_armor_helmet_coloring");
 		addColoringRecipe(registry, IIContent.itemLightEngineerChestplate, -1,
-				ItemIIUpgradeableArmor.NBT_Colour, "light_engineer_armor_chestplate_coloring");
+				ItemIIUpgradeableArmor.NBT_COLOR, "light_engineer_armor_chestplate_coloring");
 		addColoringRecipe(registry, IIContent.itemLightEngineerLeggings, -1,
-				ItemIIUpgradeableArmor.NBT_Colour, "light_engineer_armor_leggings_coloring");
+				ItemIIUpgradeableArmor.NBT_COLOR, "light_engineer_armor_leggings_coloring");
 		addColoringRecipe(registry, IIContent.itemLightEngineerBoots, -1,
-				ItemIIUpgradeableArmor.NBT_Colour, "light_engineer_armor_boots_coloring");
+				ItemIIUpgradeableArmor.NBT_COLOR, "light_engineer_armor_boots_coloring");
 	}
 
 	private static void addColoringRecipe(IForgeRegistry<IRecipe> registry, Item item, int meta, String colorTag, String recipeName)
@@ -635,6 +636,7 @@ public class IIRecipes
 	public static void addWoodTableSawRecipes()
 	{
 
+		//Sawmill plank recipe
 		CraftingManager.REGISTRY.forEach(iRecipe ->
 				{
 					if(Utils.compareToOreName(iRecipe.getRecipeOutput(), "plankWood"))
@@ -662,13 +664,24 @@ public class IIRecipes
 		CrusherRecipe.addRecipe(IIContent.itemMaterial.getStack(Materials.DUST_WOOD),
 				new IngredientStack("plankWood", 2), 3192);
 
-		//Planks to sticks
-		SawmillRecipe.addRecipe(new ItemStack(Items.STICK, 3),
-				new IngredientStack("plankWood"),
+		// Add recipes for all planks dynamically
+		for (int i = 0; i < 6; i++) { // Vanilla planks (Oak, Spruce, Birch, etc.)
+			SawmillRecipe.addRecipe(new ItemStack(Items.STICK, 3),
+					new IngredientStack(new ItemStack(Blocks.PLANKS, 1, i)), // Specific plank type
+					IIContent.itemMaterial.getStack(Materials.DUST_WOOD),
+					Sawmill.torqueMin, 100, 1);
+		}
+
+// Treated wood planks
+		SawmillRecipe.addRecipe(new ItemStack(IEContent.itemMaterial, 3, 0), // Treated sticks
+				new IngredientStack(new ItemStack(IEContent.blockTreatedWood)), // Treated planks
 				IIContent.itemMaterial.getStack(Materials.DUST_WOOD),
 				Sawmill.torqueMin, 100, 1);
-		SawmillRecipe.addRecipe(new ItemStack(IEContent.itemMaterial, 3, 0),
-				new IngredientStack("plankTreatedWood"),
+
+// Support modded planks or dynamically registered planks
+		IngredientStack allPlanks = new IngredientStack("plankWood"); // Handles OreDict entries for any planks
+		SawmillRecipe.addRecipe(new ItemStack(Items.STICK, 3),
+				allPlanks,
 				IIContent.itemMaterial.getStack(Materials.DUST_WOOD),
 				Sawmill.torqueMin, 100, 1);
 
@@ -710,20 +723,29 @@ public class IIRecipes
 
 	public static void addSmallCrateRecipes(IForgeRegistry<IRecipe> registry)
 	{
-		registry.register(new RecipeCrateConversion(
-				new ItemStack(IEContent.blockWoodenDevice0, 1, 0),
+		RecipeCrateConversion.createCrateConversionRecipes(
+				registry, "small_crate_wooden",
+				new ItemStack(IEContent.blockWoodenDevice0, 1, BlockTypes_WoodenDevice0.CRATE.getMeta()),
 				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.WOODEN_CRATE_BOX),
 				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.WOODEN_CRATE_CUBE),
 				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.WOODEN_CRATE_WIDE)
-		).setRegistryName(ImmersiveIntelligence.MODID, "small_crate_wooden"));
+		);
 
-		registry.register(new RecipeCrateConversion(
+		RecipeCrateConversion.createCrateConversionRecipes(
+				registry, "small_crate_reinforced",
+				new ItemStack(IEContent.blockWoodenDevice0, 1, BlockTypes_WoodenDevice0.REINFORCED_CRATE.getMeta()),
+				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.REINFORCED_CRATE_BOX),
+				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.REINFORCED_CRATE_CUBE),
+				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.REINFORCED_CRATE_WIDE)
+		);
+
+		RecipeCrateConversion.createCrateConversionRecipes(
+				registry, "small_crate_metal",
 				IIContent.blockMetalDevice.getStack(IIBlockTypes_MetalDevice.METAL_CRATE),
 				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.METAL_CRATE_BOX),
 				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.METAL_CRATE_CUBE),
 				IIContent.blockSmallCrate.getStack(IIBlockTypes_SmallCrate.METAL_CRATE_WIDE)
-		).setRegistryName(ImmersiveIntelligence.MODID, "small_crate_metal"));
-
+		);
 	}
 
 	public static void addRDXProductionRecipes()
@@ -870,56 +892,49 @@ public class IIRecipes
 
 	public static void addChemicalPainterRecipes()
 	{
-		// TODO: 14.10.2021 colored crates 
-		// TODO: 14.10.2021 shulker boxes, beds
+		// TODO: 14.10.2021 colored crates
 		// TODO: 14.10.2021 banners
 
 		//Vanilla Blocks
 
 		PaintingRecipe.addRecipe((rgb, stack) -> {
 			//get closest approximated dye
-			EnumDyeColor dye = IIColor.getRGBTextFormatting(rgb);
-			return new ItemStack(Blocks.WOOL, 1, dye.getMetadata());
+			return new ItemStack(Blocks.WOOL, 1, rgb.getDyeColor().getMetadata());
 		}, new IngredientStack(new ItemStack(Blocks.WOOL)), 512, 240, 125);
 
 		PaintingRecipe.addRecipe((rgb, stack) -> {
 			//get closest approximated dye
-			EnumDyeColor dye = IIColor.getRGBTextFormatting(rgb);
-			return new ItemStack(Blocks.CARPET, 1, dye.getMetadata());
+			return new ItemStack(Blocks.CARPET, 1, rgb.getDyeColor().getMetadata());
 		}, new IngredientStack(new ItemStack(Blocks.CARPET)), 512, 240, 50);
 
 		PaintingRecipe.addRecipe((rgb, stack) -> {
 			//get closest approximated dye
-			EnumDyeColor dye = IIColor.getRGBTextFormatting(rgb);
-			return new ItemStack(Blocks.STAINED_GLASS, 1, dye.getMetadata());
+			return new ItemStack(Blocks.STAINED_GLASS, 1, rgb.getDyeColor().getMetadata());
 		}, new IngredientStack(new ItemStack(Blocks.GLASS)), 512, 240, 125);
 
 		PaintingRecipe.addRecipe((rgb, stack) -> {
 			//get closest approximated dye
-			EnumDyeColor dye = IIColor.getRGBTextFormatting(rgb);
-			return new ItemStack(Blocks.STAINED_GLASS_PANE, 1, dye.getMetadata());
+			return new ItemStack(Blocks.STAINED_GLASS_PANE, 1, rgb.getDyeColor().getMetadata());
 		}, new IngredientStack(new ItemStack(Blocks.GLASS_PANE)), 512, 240, 125);
 
 		PaintingRecipe.addRecipe((rgb, stack) -> {
 			//get closest approximated dye
-			EnumDyeColor dye = IIColor.getRGBTextFormatting(rgb);
-			return new ItemStack(Blocks.STAINED_HARDENED_CLAY, 1, dye.getMetadata());
+			return new ItemStack(Blocks.STAINED_HARDENED_CLAY, 1, rgb.getDyeColor().getMetadata());
 		}, new IngredientStack(new ItemStack(Blocks.HARDENED_CLAY)), 512, 240, 125);
 
 		PaintingRecipe.addRecipe((rgb, stack) -> {
 			//get closest approximated dye
-			EnumDyeColor dye = IIColor.getRGBTextFormatting(rgb);
-			return new ItemStack(Items.BED, 1, dye.getMetadata());
+			return new ItemStack(Items.BED, 1, rgb.getDyeColor().getMetadata());
 		}, new IngredientStack(new ItemStack(Items.BED)), 512, 240, 200);
 
 		//II / IE items
 		PaintingRecipe.addRecipe((rgb, stack) -> {
-			IIContent.itemAdvancedPowerPack.setColor(stack, rgb);
+			IIContent.itemAdvancedPowerPack.setColor(stack, rgb.getPackedRGB());
 			return stack;
 		}, new IngredientStack(new ItemStack(IIContent.itemAdvancedPowerPack)), 8192, 340, 2000);
 
 		PaintingRecipe.addRecipe((rgb, stack) -> {
-			Items.LEATHER_HELMET.setColor(stack, rgb);
+			Items.LEATHER_HELMET.setColor(stack, rgb.getPackedRGB());
 			return stack;
 		}, new IngredientStack(NonNullList.from(ItemStack.EMPTY,
 				new ItemStack(Items.LEATHER_HELMET),
@@ -945,7 +960,7 @@ public class IIRecipes
 			//clear nbt
 			bulletStack.setTagCompound(new NBTTagCompound());
 			PaintingRecipe.addRecipe((rgb, stack) -> {
-				ItemStack ret = bullet.setPaintColour(stack, rgb);
+				ItemStack ret = bullet.setPaintColor(stack, rgb);
 				ret.setCount(1);
 				return ret;
 			}, new IngredientStack(bulletStack).setUseNBT(false), bullet.getCaliber()*1024, 100+(bullet.getCaliber()*40), 50+(bullet.getCaliber()*25));

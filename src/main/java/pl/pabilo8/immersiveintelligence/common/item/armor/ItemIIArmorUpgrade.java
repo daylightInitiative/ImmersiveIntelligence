@@ -9,7 +9,6 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import pl.pabilo8.immersiveintelligence.common.IIUtils;
 import pl.pabilo8.immersiveintelligence.common.item.armor.ItemIIArmorUpgrade.ArmorUpgrades;
 import pl.pabilo8.immersiveintelligence.common.util.IIColor;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
@@ -52,12 +51,12 @@ public class ItemIIArmorUpgrade extends ItemIISubItemsBase<ArmorUpgrades> implem
 		LIGHT_ENGINEER_LEGGINGS(0xff6440, '\u24c0'),
 		LIGHT_ENGINEER_BOOTS(0xcc5033, '\u24c1');
 
-		private final int color;
+		private final IIColor color;
 		private final char symbol;
 
 		ArmorTypes(int color, char symbol)
 		{
-			this.color = color;
+			this.color = IIColor.fromPackedRGB(color);
 			this.symbol = symbol;
 		}
 	}
@@ -141,15 +140,10 @@ public class ItemIIArmorUpgrade extends ItemIISubItemsBase<ArmorUpgrades> implem
 
 		//--- Boots ---//
 
-		BOOT_REINFORCEMENT(ImmutableSet.of(ArmorTypes.LIGHT_ENGINEER_BOOTS),
-				(upgrade, modifications) -> {
-					modifications.setBoolean("reinforced", true);
-					modifications.setDouble("toughness_increase", 1);
-					modifications.setDouble("armor_increase", 1);
-				}),
-		SNOW_RACKETS(ImmutableSet.of(ArmorTypes.LIGHT_ENGINEER_BOOTS), "flippers"),
-		FLIPPERS(ImmutableSet.of(ArmorTypes.LIGHT_ENGINEER_BOOTS), "snow_rackets"),
-		INTERNAL_SPRINGS(ImmutableSet.of(ArmorTypes.LIGHT_ENGINEER_BOOTS));
+		BOOT_REINFORCEMENT(ImmutableSet.of(ArmorTypes.LIGHT_ENGINEER_BOOTS), "boot_reinforcement"),
+		SNOW_RACKETS(ImmutableSet.of(ArmorTypes.LIGHT_ENGINEER_BOOTS), "snow_rackets"),
+		FLIPPERS(ImmutableSet.of(ArmorTypes.LIGHT_ENGINEER_BOOTS), "flippers"),
+		INTERNAL_SPRINGS(ImmutableSet.of(ArmorTypes.LIGHT_ENGINEER_BOOTS), "internal_springs");
 
 		private final ImmutableSet<ArmorTypes> toolset;
 		private final BiPredicate<ItemStack, ItemStack> check;
@@ -198,7 +192,7 @@ public class ItemIIArmorUpgrade extends ItemIISubItemsBase<ArmorUpgrades> implem
 		ArmorUpgrades sub = stackToSub(stack);
 		//add valid weapon types
 		for(ArmorTypes type : sub.toolset)
-			list.add(IIColor.getHexCol(type.color, type.symbol+" "+I18n.format(IIReference.DESC_TOOLUPGRADE+"item."+type.getName())));
+			list.add(type.color.getHexCol(type.symbol+" "+I18n.format(IIReference.DESC_TOOLUPGRADE+"item."+type.getName())));
 
 		//add description
 		String[] flavour = ImmersiveEngineering.proxy.splitStringOnWidth(

@@ -1,0 +1,88 @@
+name: Commits Pushed
+
+on:
+  push: #Trigger On Push
+    branches: [ "dev/**" ]
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    name: Compile and Run Checks
+    env:
+      GITHUB_USERNAME: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.OPTIMIZATION_TOKEN }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: 8
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+
+      - name: Prepare Workspace
+        run: chmod +x gradlew ; ./gradlew setupDecompWorkspace
+
+      - name: Check for Compilation
+        run: ./gradlew compileJava
+
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      - name: Test Report
+        uses: phoenix-actions/test-reporting@v15
+        id: test-report               # Set ID reference for step
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: Tests            # Name of the check run which will be created
+          path: build/test-results/test/TEST-*.xml    # Path to test results
+          reporter: java-junit        # Format of test results
+
+  notify-public-discord:
+    continue-on-error: true
+    name: Notify Public Discord
+    runs-on: ubuntu-latest
+    concurrency:
+      group: discord
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Notify Discord
+        if: ${{ github.ref == 'refs/heads/dev/main' }}
+        env:
+          COMMIT_FROM: ${{ github.event.before }}
+          COMMIT_TO: ${{ github.event.after }}
+          WEBHOOK: ${{ secrets.WH_PUSH_PUBLIC }}
+          REPO: ${{ github.repository }}
+          REPO_NAME: ${{ github.event.repository.custom_properties.project_pretty_name }}
+        run: chmod +rx ./gradle/tools/discord_commit.sh ; bash ./gradle/tools/discord_commit.sh -i
+
+  notify-internal-discord:
+    continue-on-error: true
+    name: Notify Internal Discord
+    runs-on: ubuntu-latest
+    concurrency:
+      group: discord
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Notify Discord
+        env:
+          COMMIT_FROM: ${{ github.event.before }}
+          COMMIT_TO: ${{ github.event.after }}
+          WEBHOOK: ${{ secrets.WH_PUSH_PRIVATE }}
+          REPO: ${{ github.repository }}
+          REPO_NAME: ${{ github.event.repository.custom_properties.project_pretty_name }}
+        run: chmod +rx ./gradle/tools/discord_commit.sh ; bash ./gradle/tools/discord_commit.sh -i

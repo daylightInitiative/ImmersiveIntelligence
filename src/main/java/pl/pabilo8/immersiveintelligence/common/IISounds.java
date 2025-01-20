@@ -59,10 +59,13 @@ public class IISounds
 	@ModSound(sounds = {"paper_falling"}, subtitle = "paper_eject")
 	public static SoundEvent paperEject = registerSound("paper_eject");
 
-	@ModSound(sounds = {"device/radio/*{0..1}"}, subtitle = "radio_noise")
-	public static SoundEvent radio_noise = registerSound("radio_noise");
-	@ModSound(sounds = {"device/*"}, subtitle = "radio_beep")
-	public static SoundEvent radio_beep = registerSound("radio_beep");
+	@ModSound(sounds = {"device/radio/*{0..1}"}, subtitle = "*")
+	public static SoundEvent radioNoise = registerSound("radio_noise");
+	@ModSound(sounds = {"device/radio/*"}, subtitle = "*")
+	public static SoundEvent radioBeep = registerSound("radio_beep");
+
+	@ModSound(sounds = {"device/radio/*"}, subtitle = "*")
+	public static SoundEvent debuggerBeep = registerSound("debugger_beep");
 
 	@ModSound(sounds = {"device/electric_motor/start"}, subtitle = "inserter")
 	public static SoundEvent inserterStart = registerSound("inserter_start");
@@ -203,13 +206,13 @@ public class IISounds
 
 	//--- Gate Sounds---//
 	@ModSound(sounds = {"device/hatch/gate_wooden/open"}, subtitle = "gate_open")
-	public static SoundEvent gateWoodenOpen = registerSound("wooden_gate_open");
+	public static SoundEvent gateWoodenOpen = registerSound("gate_wooden_open");
 	@ModSound(sounds = {"device/hatch/gate_wooden/close"}, subtitle = "gate_close")
-	public static SoundEvent gateWoodenClose = registerSound("wooden_gate_close");
+	public static SoundEvent gateWoodenClose = registerSound("gate_wooden_close");
 	@ModSound(sounds = {"device/hatch/gate_metal/open"}, subtitle = "gate_open")
-	public static SoundEvent gateMetalOpen = registerSound("wooden_gate_open");
+	public static SoundEvent gateMetalOpen = registerSound("gate_metal_open");
 	@ModSound(sounds = {"device/hatch/gate_metal/close"}, subtitle = "gate_close")
-	public static SoundEvent gateMetalClose = registerSound("wooden_gate_close");
+	public static SoundEvent gateMetalClose = registerSound("gate_metal_close");
 
 	//--- Machines ---//
 	@ModSound(sounds = {"device/*"}, subtitle = "device_*")

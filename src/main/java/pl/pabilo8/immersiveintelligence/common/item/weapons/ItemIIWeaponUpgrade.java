@@ -63,12 +63,12 @@ public class ItemIIWeaponUpgrade extends ItemIISubItemsBase<WeaponUpgrade> imple
 		RIFLE(0x84820e, '\u24bd'),
 		SHOTGUN(0x3af0ed, '\u24bd');
 
-		public final int color;
+		public final IIColor color;
 		public final char symbol;
 
 		WeaponType(int color, char symbol)
 		{
-			this.color = color;
+			this.color = IIColor.fromPackedRGB(color);
 			this.symbol = symbol;
 		}
 	}
@@ -210,7 +210,7 @@ public class ItemIIWeaponUpgrade extends ItemIISubItemsBase<WeaponUpgrade> imple
 		WeaponUpgrade sub = stackToSub(stack);
 		//add valid weapon types
 		for(WeaponType type : sub.toolset)
-			list.add(IIColor.getHexCol(type.color, type.symbol+" "+I18n.format(IIReference.DESC_TOOLUPGRADE+"item."+type.getName())));
+			list.add(type.color.getHexCol(type.symbol+" "+I18n.format(IIReference.DESC_TOOLUPGRADE+"item."+type.getName())));
 
 		//add description
 		String[] flavour = ImmersiveEngineering.proxy.splitStringOnWidth(

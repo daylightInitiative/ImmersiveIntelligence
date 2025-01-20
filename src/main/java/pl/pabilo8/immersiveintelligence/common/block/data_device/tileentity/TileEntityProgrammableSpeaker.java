@@ -21,14 +21,14 @@ import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Machines.ProgrammableSpeaker;
 import pl.pabilo8.immersiveintelligence.ImmersiveIntelligence;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.DataWireNetwork;
-import pl.pabilo8.immersiveintelligence.api.data.IDataConnector;
+import pl.pabilo8.immersiveintelligence.api.data.device.DataWireNetwork;
+import pl.pabilo8.immersiveintelligence.api.data.device.IDataConnector;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeBoolean;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeInteger;
 import pl.pabilo8.immersiveintelligence.api.utils.tools.IAdvancedTextOverlay;
+import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Machines.ProgrammableSpeaker;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
 import pl.pabilo8.immersiveintelligence.common.network.messages.MessageIITileSync;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
@@ -149,13 +149,13 @@ public class TileEntityProgrammableSpeaker extends TileEntityImmersiveConnectabl
 		{
 			if(once)
 			{
-				SoundEvent s = SoundEvent.REGISTRY.getObject(new ResourceLocation(packet.getPacketVariable('s').valueToString()));
+				SoundEvent s = SoundEvent.REGISTRY.getObject(new ResourceLocation(packet.getPacketVariable('s').toString()));
 				if(s!=null)
 					world.playSound(null, getPos(), s, SoundCategory.BLOCKS, ((ProgrammableSpeaker.soundRange+4)/20f), tone);
 			}
 			else
 			{
-				soundID = packet.getPacketVariable('s').valueToString();
+				soundID = packet.getPacketVariable('s').toString();
 				sendSoundUpdate();
 			}
 		}

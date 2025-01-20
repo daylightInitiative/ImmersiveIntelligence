@@ -52,23 +52,20 @@ import pl.pabilo8.immersiveintelligence.api.utils.vehicles.IVehicleMultiPart;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
 import pl.pabilo8.immersiveintelligence.common.entity.EntityHans;
-import pl.pabilo8.immersiveintelligence.common.entity.EntityParachute;
 import pl.pabilo8.immersiveintelligence.common.entity.ammo.EntityAmmoBase;
 import pl.pabilo8.immersiveintelligence.common.entity.ammo.types.EntityAmmoProjectile;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
 import pl.pabilo8.immersiveintelligence.common.network.messages.MessageParticleEffect;
 import pl.pabilo8.immersiveintelligence.common.util.IIExplosion;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
+import pl.pabilo8.immersiveintelligence.common.util.ISerializableEnum;
 import pl.pabilo8.immersiveintelligence.common.util.raytracer.BlacklistedRayTracer;
 import pl.pabilo8.immersiveintelligence.common.util.raytracer.MultipleRayTracer;
 import pl.pabilo8.immersiveintelligence.common.world.IIWorldGen;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -101,11 +98,11 @@ public class CommandIIDev extends CommandTreeHelp
 		OPTIONS.add("tpd");
 		OPTIONS.add("test_enemies");
 
+		OPTIONS.add("artillery");
 		OPTIONS.add("explosion");
 		OPTIONS.add("nuke");
 		OPTIONS.add("power");
 		OPTIONS.add("tree");
-		OPTIONS.add("parachute");
 		OPTIONS.add("deth");
 		OPTIONS.add("get_mb");
 		OPTIONS.add("place_mb");
@@ -157,11 +154,11 @@ public class CommandIIDev extends CommandTreeHelp
 					sender.sendMessage(getMessageForCommand("world_setup", "disables day and night and weather cycles, disables mob spawning"));
 					sender.sendMessage(getMessageForCommand("tpd", "teleports the player to a dimension", "<dim>"));
 					sender.sendMessage(getMessageForCommand("test_enemies", "spawns enemies", "<amount>"));
-					sender.sendMessage(getMessageForCommand("explosion", "spawns an II explosion", "<size>"));
+					sender.sendMessage(getMessageForCommand("artillery", "creates an artillery barrage at look position"));
+					sender.sendMessage(getMessageForCommand("explosion", "spawns an II explosion", "[size] [power] [shape]"));
 					sender.sendMessage(getMessageForCommand("nuke", "plants a seed on ground zero"));
 					sender.sendMessage(getMessageForCommand("power", "charges held item or looked entity with IF, absolutely free"));
 					sender.sendMessage(getMessageForCommand("tree", "creates a happy little [R E B B U R] tree"));
-					sender.sendMessage(getMessageForCommand("parachute", "spawns and mounts the command user on a parachute"));
 					sender.sendMessage(getMessageForCommand("deth", "removes the entity player is looking at"));
 					sender.sendMessage(getMessageForCommand("get_mb", "gets the internal data of a multiblock player is looking at"));
 					sender.sendMessage(getMessageForCommand("place_mb", "places a multiblock", "<id>"));
@@ -347,6 +344,7 @@ public class CommandIIDev extends CommandTreeHelp
 					});
 				}
 				break;
+				case "artillery":
 				case "explosion":
 				case "nuke":
 				{
@@ -360,26 +358,56 @@ public class CommandIIDev extends CommandTreeHelp
 
 					BlockPos pos = traceResult.getBlockPos();
 
-					if(args[0].equals("nuke"))
+					switch(args[0])
 					{
-						ItemStack s2 = IIContent.itemAmmoHeavyArtillery.getAmmoStack(IIContent.ammoCoreBrass, CoreType.CANISTER, FuseType.CONTACT, IIContent.ammoComponentNuke);
-						new AmmoFactory<>(senderEntity.getEntityWorld())
-								.setStack(s2)
-								.setPositionAndVelocity(new Vec3d(pos).addVector(0, 2, 0), new Vec3d(0, -1, 0), 1)
-								.create();
-						return;
-					}
-					int num = 0;
-					try
-					{
-						num = Math.abs(Integer.parseInt(args[1]));
-					} catch(Exception ignored)
-					{
+						case "nuke":
+						{
+							ItemStack ammunition = IIContent.itemAmmoHeavyArtillery.getAmmoStack(IIContent.ammoCoreBrass, CoreType.CANISTER, FuseType.CONTACT, IIContent.ammoComponentNuke);
+							new AmmoFactory<>(senderEntity.getEntityWorld())
+									.setStack(ammunition)
+									.setPositionAndVelocity(new Vec3d(pos).addVector(0, 2, 0), new Vec3d(0, -1, 0), 1)
+									.create();
+						}
+						break;
+						case "explosion":
+						{
+							int size = 2, power = 7;
+							ComponentEffectShape shape = ComponentEffectShape.ORB;
+							try
+							{
+								if(args.length > 1)
+									size = Math.abs(Integer.parseInt(args[1]));
+								if(args.length > 2)
+									power = Math.abs(Integer.parseInt(args[2]));
+								if(args.length > 3)
+									shape = ComponentEffectShape.valueOf(args[3].toUpperCase());
+
+							} catch(Exception ignored)
+							{
+
+							}
+							IIExplosion exp = new IIExplosion(server.getEntityWorld(), senderEntity, new Vec3d(pos), null, size, power,
+									shape, false, true, false);
+							exp.doExplosionA();
+							exp.doExplosionB(true);
+						}
+						break;
+						case "artillery":
+						{
+							ItemStack ammunition = IIContent.itemAmmoHeavyArtillery.getAmmoStack(IIContent.ammoCoreBrass, CoreType.CANISTER, FuseType.CONTACT, IIContent.ammoComponentRDX);
+							AmmoFactory<?> factory = new AmmoFactory<>(senderEntity.getEntityWorld())
+									.setStack(ammunition)
+									.setDirection(new Vec3d(0, -1, 0))
+									.setVelocityModifier(0.25f);
+
+							for(int i = 0; i < 40; i++)
+								factory.setPosition(new Vec3d(pos).addVector(0, 40+i*20, 0)
+												.addVector(Utils.RAND.nextGaussian()*10, 0, Utils.RAND.nextGaussian()*10))
+										.create();
+						}
+						break;
 
 					}
-					IIExplosion exp = new IIExplosion(server.getEntityWorld(), senderEntity, new Vec3d(pos), null, num, 7f, ComponentEffectShape.STAR, false, true, false);
-					exp.doExplosionA();
-					exp.doExplosionB(true);
 				}
 				break;
 				case "test_enemies":
@@ -441,7 +469,7 @@ public class CommandIIDev extends CommandTreeHelp
 
 				}
 				break;
-				case "parachute":
+				/*case "parachute":
 				{
 					if(senderEntity!=null)
 					{
@@ -451,7 +479,7 @@ public class CommandIIDev extends CommandTreeHelp
 						senderEntity.startRiding(para);
 					}
 				}
-				break;
+				break;*/
 				case "get_mb":
 				{
 					RayTraceResult traceResult = getRayTraceResult(senderEntity, 40f);
@@ -524,7 +552,9 @@ public class CommandIIDev extends CommandTreeHelp
 					}
 
 					//Send the packet, so clients can spawn the particle on their side
-					IIPacketHandler.sendToClient(new MessageParticleEffect(args[1], sender.getEntityWorld(), pos, motion));
+					IIPacketHandler.sendToClient(new MessageParticleEffect(args[1], sender.getEntityWorld(),
+							pos, motion, 0, 0, null
+					));
 					sender.sendMessage(new TextComponentString(String.format("Particle %s created!", args[1])));
 				}
 				break;
@@ -559,7 +589,7 @@ public class CommandIIDev extends CommandTreeHelp
 	@Override
 	public int getRequiredPermissionLevel()
 	{
-		return 4;
+		return 2;
 	}
 
 	/**
@@ -589,7 +619,12 @@ public class CommandIIDev extends CommandTreeHelp
 				}
 			}
 			case 3:
+				break;
 			case 4:
+				if(args[0].equals("explosion"))
+					return getListOfStringsMatchingLastWord(args, Arrays.stream(ComponentEffectShape.values())
+							.map(ISerializableEnum::getName)
+							.collect(Collectors.toList()));
 			case 5:
 				return getTabCompletionCoordinate(args, 3, sender.getPosition());
 		}

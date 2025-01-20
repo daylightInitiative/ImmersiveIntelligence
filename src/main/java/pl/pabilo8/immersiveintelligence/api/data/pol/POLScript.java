@@ -1,11 +1,13 @@
 package pl.pabilo8.immersiveintelligence.api.data.pol;
 
 import net.minecraft.util.Tuple;
-import pl.pabilo8.immersiveintelligence.api.data.DataOperations;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataOperationUtils;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataTypeUtils;
 import pl.pabilo8.immersiveintelligence.api.data.operations.DataOperation;
 import pl.pabilo8.immersiveintelligence.api.data.pol.instructions.*;
 import pl.pabilo8.immersiveintelligence.api.data.types.*;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 import pl.pabilo8.immersiveintelligence.common.item.data.ItemIIFunctionalCircuit.Circuits;
 
 import java.util.ArrayList;
@@ -78,7 +80,7 @@ public class POLScript
 
 			if(element.length()==0) //letter
 				output.add(new Tuple<>(POLKeywords.SET, "generic "+next));
-			else if(DataPacket.varTypes.containsKey(element)) //type name
+			else if(IIDataTypeUtils.metaTypesByName.containsKey(element)) //type name
 				output.add(new Tuple<>(POLKeywords.SET, next));
 			else if(keyword!=null)
 			{
@@ -134,7 +136,7 @@ public class POLScript
 							.filter(e -> e.getName().equals(rest.toLowerCase()))
 							.findFirst().orElse(Circuits.ARITHMETIC);
 					for(String function : circuit.getFunctions())
-						operations.add(DataOperations.getOperationInstance(function));
+						operations.add(IIDataOperationUtils.getOperationInstance(function));
 				}
 				break;
 				case MARK: //add a marker
@@ -213,10 +215,9 @@ public class POLScript
 				case SET: //set variable value
 				{
 					String[] words = rest.split(" ", 4);
-					Class<? extends IDataType> type = DataPacket.varTypes.getOrDefault(words[0], IDataType.class);
 					char letter = words[1].charAt(0);
 
-					in = new POLInstructionSet(letter, beginParseExpression(operations, words[3]), type);
+					in = new POLInstructionSet(letter, beginParseExpression(operations, words[3]), IIDataTypeUtils.getVarInstance(words[0]).getClass());
 				}
 				break;
 				case PAGE: //change memory page
@@ -268,7 +269,7 @@ public class POLScript
 			mainSet.add(instruction);
 	}
 
-	private static IDataType beginParseExpression(ArrayList<DataOperation> operations, String text)
+	private static DataType beginParseExpression(ArrayList<DataOperation> operations, String text)
 	{
 		if(countChars(text, '(')!=countChars(text, ')'))
 			return new DataTypeNull(); //unbalanced brackets
@@ -285,7 +286,7 @@ public class POLScript
 	 * Polish Notation for the win!
 	 * (what else would you expect in a language named POL) :D
 	 */
-	private static IDataType parseExpression(ArrayList<DataOperation> operations, String text)
+	private static DataType parseExpression(ArrayList<DataOperation> operations, String text)
 	{
 		if(text.length()==0)
 			return new DataTypeNull();
@@ -296,30 +297,33 @@ public class POLScript
 		}
 
 		DataOperation op = null;
-		ArrayList<IDataType> arguments = new ArrayList<>();
+		ArrayList<DataType> arguments = new ArrayList<>();
 		String keyword = text.split(" ")[0];
 
 		for(DataOperation operation : operations)
-			if(operation.name.equals(keyword))
+			if(operation.getMeta().name().equals(keyword))
 			{
 				op = operation;
 				break;
 			}
 		if(op==null)
 			for(DataOperation operation : operations)
-				if(operation.expression!=null&&operation.expression.equals(keyword))
+			{
+				String expression = operation.getMeta().expression();
+				if(!expression.isEmpty()&&expression.equals(keyword))
 				{
 					op = operation;
 					keyword = SPECIAL_REGEX_CHARS.matcher(keyword).replaceAll("\\\\$0"); //replace special chars, like +, -, etc.
 					break;
 				}
+			}
 
 		if(op!=null)
 		{
 			String remaining = text.replaceFirst(keyword, "").trim();
 			while(remaining.length() > 0)
 			{
-				Tuple<IDataType, String> tuple;
+				Tuple<DataType, String> tuple;
 				if(remaining.startsWith("("))
 				{
 					String exp = findFullBracket(remaining);
@@ -338,7 +342,7 @@ public class POLScript
 				remaining = tuple.getSecond().trim();
 			}
 
-			return new DataTypeExpression(arguments.toArray(new IDataType[0]), op, ' ');
+			return new DataTypeExpression(arguments.toArray(new DataType[0]), op, ' ');
 		}
 		else
 		{
@@ -379,9 +383,9 @@ public class POLScript
 		return remaining.substring(1, c-1);
 	}
 
-	private static Tuple<IDataType, String> parseValue(String text)
+	private static Tuple<DataType, String> parseValue(String text)
 	{
-		IDataType data;
+		DataType data;
 
 		if(text.charAt(0)=='\"')
 		{
@@ -455,26 +459,26 @@ public class POLScript
 
 	public static class DataTypeWrapper
 	{
-		final IDataType wrapped;
+		final DataType wrapped;
 
-		public DataTypeWrapper(IDataType wrapped)
+		public DataTypeWrapper(DataType wrapped)
 		{
 			this.wrapped = wrapped;
 		}
 
-		public IDataType get(DataPacket packet)
+		public DataType get(DataPacket packet)
 		{
 			if(wrapped instanceof DataTypeExpression)
 				return ((DataTypeExpression)wrapped).getValue(packet);
 			if(wrapped instanceof DataTypeAccessor)
 				return ((DataTypeAccessor)wrapped).getRealValue(packet);
 
-			return packet.getVarInType(IDataType.class, wrapped);
+			return packet.getVarInType(DataType.class, wrapped);
 		}
 
 		public String getString(DataPacket packet)
 		{
-			return get(packet).valueToString();
+			return get(packet).toString();
 		}
 	}
 

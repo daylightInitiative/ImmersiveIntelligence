@@ -38,3 +38,10 @@ src/main/generated/*
 
 # Certs
 cert/*
+
+# Tests
+run_tests/
+
+# Act
+.secret
+custom.gradle.template

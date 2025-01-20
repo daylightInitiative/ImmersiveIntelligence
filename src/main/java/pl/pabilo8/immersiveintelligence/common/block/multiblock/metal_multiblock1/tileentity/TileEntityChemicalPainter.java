@@ -34,14 +34,15 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Machines.ChemicalPainter;
 import pl.pabilo8.immersiveintelligence.api.crafting.PaintingRecipe;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.IDataConnector;
-import pl.pabilo8.immersiveintelligence.api.data.IDataDevice;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataHandlingUtils;
+import pl.pabilo8.immersiveintelligence.api.data.device.IDataDevice;
+import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeFloat;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeInteger;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeString;
-import pl.pabilo8.immersiveintelligence.api.data.types.IDataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
+import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Machines.ChemicalPainter;
 import pl.pabilo8.immersiveintelligence.common.IIGuiList;
 import pl.pabilo8.immersiveintelligence.common.IISounds;
 import pl.pabilo8.immersiveintelligence.common.IIUtils;
@@ -83,7 +84,7 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 	public int processTime, processTimeMax;
 	public ItemStack effect = ItemStack.EMPTY;
 	public boolean active = false;
-	public int color = 0xff00ff;
+	public IIColor color = IIColor.fromPackedRGB(0xff00ff);
 
 	IItemHandler insertionHandler = new IEInventoryHandler(1, this, 0, true, false);
 	IItemHandler outputHandler = new IEInventoryHandler(1, this, 1, true, false);
@@ -109,7 +110,7 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 		processTime = nbt.getInteger("processTime");
 		processTimeMax = nbt.getInteger("processTimeMax");
 		effect = new ItemStack(nbt.getCompoundTag("effect"));
-		color = nbt.getInteger("color");
+		color = IIColor.fromPackedRGB(nbt.getInteger("color"));
 
 		if(!descPacket)
 			inventory = Utils.readInventory(nbt.getTagList("inventory", 10), 4);
@@ -128,7 +129,7 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 		nbt.setTag("tank3", tanks[2].writeToNBT(new NBTTagCompound()));
 		nbt.setTag("tank4", tanks[3].writeToNBT(new NBTTagCompound()));
 
-		nbt.setInteger("color", color);
+		nbt.setInteger("color", color.getPackedRGB());
 		nbt.setInteger("processTime", processTime);
 		nbt.setInteger("processTimeMax", processTimeMax);
 		nbt.setTag("effect", effect.serializeNBT());
@@ -168,7 +169,7 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 			effect = new ItemStack(message.getCompoundTag("output"));
 
 		if(message.hasKey("color"))
-			color = message.getInteger("color");
+			color = IIColor.fromPackedRGB(message.getInteger("color"));
 	}
 
 	@Override
@@ -176,7 +177,7 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 	{
 		super.receiveMessageFromClient(message);
 		if(message.hasKey("color"))
-			color = message.getInteger("color");
+			color = IIColor.fromPackedRGB(message.getInteger("color"));
 	}
 
 	/**
@@ -208,9 +209,7 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 				ImmersiveEngineering.proxy.handleTileSound(IISounds.chemicalPainterLiftDown, t2, shoudlPlaySound("immersiveintelligence:chemical_painter_lift_down"), 1.5f, 0.75f);
 
 			if(active&&shoudlPlaySound("immersiveengineering:spray"))
-			{
 				spawnPaintParticle();
-			}
 
 			return;
 		}
@@ -222,13 +221,12 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 		active = shouldRenderAsActive();
 
 		if(energyStorage.getEnergyStored() > 0&&processQueue.size() < this.getProcessQueueMaxLength())
-		{
 			if(Arrays.stream(tanks).anyMatch(ft -> ft.getFluidAmount() > 0))
 			{
 				PaintingRecipe recipe = PaintingRecipe.findRecipe(inventory.get(0));
 				if(recipe!=null)
 				{
-					float[] cmyk = IIColor.rgbToCmyk(IIColor.rgbIntToRGB(color));
+					float[] cmyk = color.getCMYK();
 					for(int i = 0; i < cmyk.length; i++)
 						cmyk[i] *= recipe.getPaintAmount();
 
@@ -255,21 +253,16 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 
 				}
 			}
-		}
 
 		if(processTime >= processTimeMax&&processQueue.size() > 0)
 		{
 			MultiblockProcess<PaintingRecipe> process = processQueue.get(0);
 			if(process instanceof PaintingProcess)
-			{
 				if(ItemHandlerHelper.insertItemStacked(outputHandler, process.recipe.getActualItemOutputs(this).get(0), true).isEmpty())
 					((PaintingProcess)process).processFinish(this);
-			}
 		}
 
 		if(active)
-		{
-
 			if(processTime==Math.ceil(0.1*processTimeMax))
 				world.playSound(null, getBlockPosForPos(70), IISounds.vulcanizerPullStart, SoundCategory.BLOCKS, .65F, 1.5f);
 			else if(processTime==Math.ceil(0.2*processTimeMax))
@@ -278,7 +271,6 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 				world.playSound(null, getBlockPosForPos(70), IISounds.vulcanizerPullStart, SoundCategory.BLOCKS, .65F, 1.5f);
 			else if(processTime==Math.ceil(0.8*processTimeMax))
 				world.playSound(null, getBlockPosForPos(70), IISounds.vulcanizerPullEnd, SoundCategory.BLOCKS, .65F, 1.5f);
-		}
 
 		IIUtils.handleBucketTankInteraction(tanks, inventory, 2, 3, 0, false, CYAN);
 		IIUtils.handleBucketTankInteraction(tanks, inventory, 2, 3, 1, false, MAGENTA);
@@ -297,7 +289,7 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 
 		if(update||wasActive!=active)
 			IIPacketHandler.sendToClient(this, new MessageIITileSync(this, EasyNBT.newNBT()
-					.withInt("color", color)
+					.withInt("color", color.getPackedRGB())
 					.withInt("processTime", processTime)
 					.withInt("processTimeMax", processTimeMax)
 					.withBoolean("active", this.active)
@@ -318,7 +310,7 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 		facing = facing.scale(0.65f);
 
 		float mod = (float)(Math.random()*2f);
-		float[] rgb = IIColor.rgbIntToRGB(color);
+		float[] rgb = color.getFloatRGB();
 		float ff = (getWorld().getTotalWorldTime()%200)/200f;
 		float ny = (-0.275f+((Math.abs(((ff%0.2f)/0.2f)-0.5f)*2f)*0.55f));
 		float nx = ((Math.abs(((ff%0.33f)/0.33f)-0.5f)*2f)*0.55f);
@@ -456,7 +448,6 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 	{
 		TileEntityChemicalPainter master = this.master();
 		if(master!=null)
-		{
 			switch(pos)
 			{
 				case 19:
@@ -468,8 +459,6 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 				case 15:
 					return new FluidTank[]{master.tanks[3]};
 			}
-
-		}
 		return new FluidTank[0];
 	}
 
@@ -531,13 +520,11 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 	public void onGuiOpened(EntityPlayer player, boolean clientside)
 	{
 		if(!clientside)
-		{
 			IIPacketHandler.sendToClient(this, new MessageIITileSync(this, EasyNBT.newNBT()
-					.withInt("color", color)
+					.withInt("color", color.getPackedRGB())
 					.withInt("processTime", processTime)
 					.withInt("processTimeMax", processTimeMax)
 			));
-		}
 	}
 
 	@Override
@@ -563,7 +550,6 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 	{
 		TileEntityChemicalPainter master = master();
 		if(master!=null&&master.processQueue.size() > 0)
-		{
 			switch(sound)
 			{
 				case "immersiveintelligence:chemical_painter_lights":
@@ -575,7 +561,6 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 				case "immersiveintelligence:chemical_painter_lift_down":
 					return IIMath.inRange(master.processTime, master.processTimeMax, 0.7, 0.85);
 			}
-		}
 
 		return false;
 	}
@@ -651,71 +636,39 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 		TileEntityChemicalPainter master = master();
 		if(pos==10&&master!=null)
 		{
-			IDataType c = packet.getPacketVariable('c');
-			IDataType p = packet.getPacketVariable('p');
+			DataType c = packet.getPacketVariable('c');
+			DataType p = packet.getPacketVariable('p');
 
-			if(c instanceof DataTypeString&&side!=null)
+			if(c.toString().equals("callback"))
 			{
-				IDataConnector conn = IIUtils.findConnectorFacing(getBlockPosForPos(10), world, side.getOpposite());
-				if(conn==null)
-					return;
-				DataPacket reply = new DataPacket();
-				switch(((DataTypeString)c).value)
-				{
-					case "get_ink":
-					case "get_ink_black":
-						reply.setVariable('c', new DataTypeString("ink_black"));
-						reply.setVariable('g', new DataTypeInteger(master.tanks[0].getFluidAmount()));
-						conn.sendPacket(reply);
-						break;
-					case "get_ink_cyan":
-						reply.setVariable('c', new DataTypeString("ink_cyan"));
-						reply.setVariable('g', new DataTypeInteger(master.tanks[1].getFluidAmount()));
-						conn.sendPacket(reply);
-						break;
-					case "get_ink_yellow":
-						reply.setVariable('c', new DataTypeString("ink_yellow"));
-						reply.setVariable('g', new DataTypeInteger(master.tanks[2].getFluidAmount()));
-						conn.sendPacket(reply);
-						break;
-					case "get_ink_magenta":
-						reply.setVariable('c', new DataTypeString("ink_magenta"));
-						reply.setVariable('g', new DataTypeInteger(master.tanks[3].getFluidAmount()));
-						conn.sendPacket(reply);
-						break;
-					case "get_energy":
-						reply.setVariable('c', new DataTypeString("energy"));
-						reply.setVariable('g', new DataTypeInteger(master.energyStorage.getEnergyStored()));
-						conn.sendPacket(reply);
-						break;
-					case "get_color":
-						reply.setVariable('c', new DataTypeString("color"));
-						reply.setVariable('g', new DataTypeInteger(master.color));
-						conn.sendPacket(reply);
-						break;
-					case "get_color_hex":
-						reply.setVariable('c', new DataTypeString("color"));
-						reply.setVariable('g', new DataTypeString(String.format("#%06X", master.color)));
-						conn.sendPacket(reply);
-						break;
-				}
+				DataPacket callback = IIDataHandlingUtils.handleCallback(packet, var -> {
+					switch(var)
+					{
+						case "get_energy":
+							return new DataTypeInteger(master.energyStorage.getEnergyStored());
+						case "get_progress":
+							return new DataTypeFloat(master.processTime/(float)master.processTimeMax);
+						case "get_ink_black":
+							return new DataTypeInteger(master.tanks[0].getFluidAmount());
+						case "get_ink_cyan":
+							return new DataTypeInteger(master.tanks[1].getFluidAmount());
+						case "get_ink_yellow":
+							return new DataTypeInteger(master.tanks[2].getFluidAmount());
+						case "get_ink_magenta":
+							return new DataTypeInteger(master.tanks[3].getFluidAmount());
+						case "get_color":
+							return new DataTypeInteger(master.color.getPackedRGB());
+					}
+					return null;
+				});
+				//TODO: 09.10.2024 change to use sendData after moving to new system
+				IIDataHandlingUtils.sendPacketAdjacently(callback, world, getBlockPosForPos(10), mirrored?facing.rotateY(): facing.rotateYCCW());
 			}
-
-			if(p instanceof DataTypeInteger)
-			{
-				master.color = MathHelper.clamp(((DataTypeInteger)p).value, 0, 0xffffff);
-			}
+			else if(p instanceof DataTypeInteger)
+				master.color = IIColor.fromPackedRGB(MathHelper.clamp(((DataTypeInteger)p).value, 0, 0xffffff));
 			else if(p instanceof DataTypeString)
-			{
-				try
-				{
-					int color = Integer.parseInt(p.valueToString(), 16);
-					master.color = MathHelper.clamp(color, 0, 0xffffff);
-				} catch(NumberFormatException ignored)
-				{
+				master.color = IIColor.fromHex(((DataTypeString)p).value);
 
-				}
-			}
 		}
 	}
 
@@ -728,10 +681,8 @@ public class TileEntityChemicalPainter extends TileEntityMultiblockMetal<TileEnt
 		{
 			TileEntityChemicalPainter master = master();
 			if(master!=null&&master.active)
-			{
 				if(IIMath.inRange(master.processTime, master.processTimeMax, 0.65f, 0.95f))
 					gatherLightsEvent.add(Light.builder().pos(getPos()).color(0.8235294f, 0.20392157f, 0.92156863f).radius(5f).build());
-			}
 		}
 	}
 

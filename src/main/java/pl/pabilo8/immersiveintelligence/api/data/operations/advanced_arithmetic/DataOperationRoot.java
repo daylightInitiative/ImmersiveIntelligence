@@ -1,31 +1,33 @@
 package pl.pabilo8.immersiveintelligence.api.data.operations.advanced_arithmetic;
 
-import pl.pabilo8.immersiveintelligence.common.IIUtils;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
 import pl.pabilo8.immersiveintelligence.api.data.operations.DataOperation;
-import pl.pabilo8.immersiveintelligence.api.data.types.*;
+import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeExpression;
+import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeFloat;
+import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeInteger;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.NumericDataType;
 import pl.pabilo8.immersiveintelligence.common.util.IIMath;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author Pabilo8
  * @since 05-07-2019
  */
+@DataOperation.DataOperationMeta(name = "root",
+		allowedTypes = {NumericDataType.class, NumericDataType.class}, params = {"base", "degree"},
+		expectedResult = NumericDataType.class)
 public class DataOperationRoot extends DataOperation
 {
-	public DataOperationRoot()
-	{
-		name = "root";
-		allowedTypes = new Class[]{IDataTypeNumeric.class,IDataTypeNumeric.class};
-		expectedResult = IDataTypeNumeric.class;
-	}
-
+	@Nonnull
 	@Override
-	public IDataType execute(DataPacket packet, DataTypeExpression data)
+	public DataType execute(DataPacket packet, DataTypeExpression data)
 	{
-		IDataTypeNumeric t1, t2;
+		NumericDataType t1, t2;
 
-		t1 = packet.getVarInType(IDataTypeNumeric.class, data.getArgument(0));
-		t2 = packet.getVarInType(IDataTypeNumeric.class, data.getArgument(1));
+		t1 = packet.getVarInType(NumericDataType.class, data.getArgument(0));
+		t2 = packet.getVarInType(NumericDataType.class, data.getArgument(1));
 
 		if(t1 instanceof DataTypeFloat||t2 instanceof DataTypeFloat)
 			return new DataTypeFloat((float)Math.round(IIMath.root(t1.floatValue(), t2.floatValue())));

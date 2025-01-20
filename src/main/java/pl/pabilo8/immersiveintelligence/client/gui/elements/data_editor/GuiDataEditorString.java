@@ -35,7 +35,7 @@ public class GuiDataEditorString extends GuiDataEditor<DataTypeString>
 		this.valueEdit = new GuiMultiLineTextField(0, renderer,
 				x+2, y+12, width-4, height-20);
 		this.valueEdit.setFocused(true);
-		this.valueEdit.setText(dataType.valueToString());
+		this.valueEdit.setText(dataType.toString());
 		this.valueEdit.updateCursorCounter();
 		this.valueEdit.setMaxStringLength(512);
 	}
@@ -57,7 +57,7 @@ public class GuiDataEditorString extends GuiDataEditor<DataTypeString>
 	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks)
 	{
 		super.drawButton(mc, mouseX, mouseY, partialTicks);
-		renderer.drawString(valueLabel, x+2, y+2, IIReference.COLOR_H1, false);
+		renderer.drawString(valueLabel, x+2, y+2, IIReference.COLOR_H1.getPackedRGB(), false);
 
 		this.valueEdit.drawTextBox();
 	}
@@ -80,7 +80,6 @@ public class GuiDataEditorString extends GuiDataEditor<DataTypeString>
 	@Override
 	public DataTypeString outputType()
 	{
-		dataType.setDefaultValue();
 		dataType.value = this.valueEdit.getText();
 		return dataType;
 	}

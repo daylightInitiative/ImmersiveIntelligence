@@ -18,8 +18,8 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.IFluidTank;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.IDataConnector;
-import pl.pabilo8.immersiveintelligence.api.data.IDataDevice;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataHandlingUtils;
+import pl.pabilo8.immersiveintelligence.api.data.device.IDataDevice;
 import pl.pabilo8.immersiveintelligence.api.data.radio.IRadioDevice;
 import pl.pabilo8.immersiveintelligence.api.data.radio.RadioNetwork;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Machines.RadioStation;
@@ -75,9 +75,9 @@ public class TileEntityRadioStation extends TileEntityMultiblockMetal<TileEntity
 		if(!isDummy()&&world.isRemote)
 		{
 			if(getTileForPos(9)!=null)
-				ImmersiveEngineering.proxy.handleTileSound(IISounds.radio_noise, getTileForPos(9), this.soundDelay > 0, 0.125f/4f, 1);
+				ImmersiveEngineering.proxy.handleTileSound(IISounds.radioNoise, getTileForPos(9), this.soundDelay > 0, 0.125f/4f, 1);
 			if(getTileForPos(0)!=null)
-				ImmersiveEngineering.proxy.handleTileSound(IISounds.radio_beep, getTileForPos(0), this.soundDelay > 0, 0.5f/4f, sountIn?1f: 0.5f);
+				ImmersiveEngineering.proxy.handleTileSound(IISounds.radioBeep, getTileForPos(0), this.soundDelay > 0, 0.5f/4f, sountIn?1f: 0.5f);
 
 			if(soundDelay > 0)
 				soundDelay--;
@@ -281,14 +281,10 @@ public class TileEntityRadioStation extends TileEntityMultiblockMetal<TileEntity
 	public boolean onRadioReceive(DataPacket packet)
 	{
 		//Added because of getting double (and fake (with pos -1 and facing north) tile entities) when using world.getTileEntity
-		if(this.pos!=-1&&!this.isDummy()&&isConstructionFinished())
+		if(this.formed&&!this.isDummy()&&isConstructionFinished())
 		{
-			IDataConnector conn = IIUtils.findConnectorAround(this.getPos(), this.world);
-			if(conn!=null)
-			{
-				conn.sendPacket(packet);
+			if(IIDataHandlingUtils.sendPacketAdjacently(packet, this.world, this.getPos(), facing.getOpposite()))
 				IIPacketHandler.sendToClient(this, new MessageIITileSync(this, EasyNBT.newNBT().withBoolean("beep", true)));
-			}
 			return true;
 		}
 		return false;
@@ -337,13 +333,8 @@ public class TileEntityRadioStation extends TileEntityMultiblockMetal<TileEntity
 	@Override
 	public float getRange()
 	{
-		return RadioStation.radioRange;
-	}
-
-	@Override
-	public float getWeatherRangeDecrease()
-	{
-		return world.isRainingAt(getPos())?(float)RadioStation.weatherHarshness: 1f;
+		float factor = world.isRainingAt(getPos())?(float)RadioStation.weatherHarshness: 1f;
+		return RadioStation.radioRange*factor;
 	}
 
 	@Override

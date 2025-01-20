@@ -8,17 +8,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Tuple;
 import pl.pabilo8.immersiveintelligence.client.render.IIMultiblockRenderer;
 import pl.pabilo8.immersiveintelligence.client.render.IITileRenderer.RegisteredTileRenderer;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.client.util.amt.*;
 import pl.pabilo8.immersiveintelligence.common.block.multiblock.metal_multiblock0.tileentity.TileEntityPrintingPress;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
+import pl.pabilo8.immersiveintelligence.common.util.ResLoc;
 
 /**
  * @author Pabilo8
  * @updated 13.12.2023
  * @since 10.07.2019
  */
-@RegisteredTileRenderer(clazz = TileEntityPrintingPress.class, name = "printing_press")
+@RegisteredTileRenderer(name = "multiblock/printing_press", clazz = TileEntityPrintingPress.class)
 public class PrintingPressRenderer extends IIMultiblockRenderer<TileEntityPrintingPress>
 {
 	private AMT[] model;

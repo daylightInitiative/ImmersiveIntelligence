@@ -19,6 +19,7 @@ import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWindmill;
 import blusunrize.immersiveengineering.common.items.IEItemInterfaces.IGuiItem;
 import blusunrize.immersiveengineering.common.util.IEPotions;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockTNT;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -61,12 +62,13 @@ import pl.pabilo8.immersiveintelligence.api.ammo.AmmoRegistry;
 import pl.pabilo8.immersiveintelligence.api.ammo.PenetrationRegistry;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.IAmmoTypeItem;
 import pl.pabilo8.immersiveintelligence.api.crafting.DustUtils;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataOperationUtils;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataTypeUtils;
 import pl.pabilo8.immersiveintelligence.api.rotary.CapabilityRotaryEnergy;
 import pl.pabilo8.immersiveintelligence.api.rotary.IIRotaryUtils;
 import pl.pabilo8.immersiveintelligence.api.utils.IUpgradableMachine;
 import pl.pabilo8.immersiveintelligence.api.utils.MachineUpgrade;
 import pl.pabilo8.immersiveintelligence.api.utils.MinecartBlockHelper;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.MechanicalDevices;
 import pl.pabilo8.immersiveintelligence.common.ammo.components.factory.AmmoComponentFluid;
 import pl.pabilo8.immersiveintelligence.common.block.data_device.BlockIIDataDevice.IIBlockTypes_Connector;
@@ -101,10 +103,7 @@ import pl.pabilo8.immersiveintelligence.common.gui.ContainerUpgrade;
 import pl.pabilo8.immersiveintelligence.common.item.ItemIIMinecart.Minecarts;
 import pl.pabilo8.immersiveintelligence.common.item.crafting.material.ItemIIMaterialDust.MaterialsDust;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
-import pl.pabilo8.immersiveintelligence.common.util.IBatchOredictRegister;
-import pl.pabilo8.immersiveintelligence.common.util.IIColor;
-import pl.pabilo8.immersiveintelligence.common.util.IIReference;
-import pl.pabilo8.immersiveintelligence.common.util.IIStringUtil;
+import pl.pabilo8.immersiveintelligence.common.util.*;
 import pl.pabilo8.immersiveintelligence.common.util.block.BlockIIBase;
 import pl.pabilo8.immersiveintelligence.common.util.block.BlockIIFluid;
 import pl.pabilo8.immersiveintelligence.common.util.block.IIBlockInterfaces.IIBlockEnum;
@@ -304,12 +303,13 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 
 		ExcavatorHandler.addMineral("Wolframite", 15, .15f, new String[]{"oreTungsten", "oreIron"}, new float[]{.25f, .75f});
 		ExcavatorHandler.addMineral("Ferberite", 10, .2f, new String[]{"oreTungsten", "oreIron", "oreTin"}, new float[]{.2f, .4f, .3f});
+		ExcavatorHandler.addMineral("Smithsonite", 10, .15f, new String[]{"oreZinc"}, new float[]{1.0f});
+		ExcavatorHandler.addMineral("Halite", 15, .10f, new String[]{"oreSalt"}, new float[]{1.0f});
 
 		LighterFuelHandler.addFuel(FluidRegistry.getFluid("creosote"), 100);
 		LighterFuelHandler.addFuel(FluidRegistry.getFluid("ethanol"), 20);
 
 		MachinegunCoolantHandler.addCoolant(FluidRegistry.WATER, 1);
-		// LighterFuelHandler.addFuel(FluidRegistry.getFluid("creosote"),100);
 
 		CrusherRecipe.addRecipe(IIContent.itemMaterialDust.getStack(MaterialsDust.SILICON, 1),
 				new IngredientStack("plateSilicon"), 12000);
@@ -333,6 +333,24 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 				FluidRegistry.getFluid("diesel"),
 				FluidRegistry.getFluid("biodiesel")
 		);
+
+		IIContent.itemLighter.registerBlockAction((world, pos, igniter, state, tileEntity) ->
+		{
+			if(!(state.getBlock() instanceof BlockTNT))
+				return false;
+			((BlockTNT)state.getBlock()).explode(world, pos, state.withProperty(BlockTNT.EXPLODE, Boolean.valueOf(true)), igniter);
+			world.setBlockToAir(pos);
+			return true;
+		});
+		IIContent.itemLighter.registerBlockAction((world, pos, igniter, state, tileEntity) ->
+		{
+			if(!(state.getBlock()==IIContent.blockAdvancedExplosives))
+				return false;
+			IIContent.blockAdvancedExplosives.explode(world, pos, igniter);
+			world.setBlockToAir(pos);
+			return true;
+		});
+
 	}
 
 	//--- Main Loading Events ---//
@@ -345,6 +363,9 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 		IEApi.prefixToIngotMap.put("spring", new Integer[]{2, 1});
 
 		IIContent.init();
+
+		IIDataTypeUtils.registerDataTypes();
+		IIDataOperationUtils.registerDataOperations();
 
 		//ALWAYS REGISTER BULLETS IN PRE-INIT! (so they get their texture registered before TextureStitchEvent.Pre)
 		//Bullets
@@ -408,20 +429,24 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 		AmmoRegistry.registerCore(IIContent.ammoCorePabilium);
 
 		//Tiny dusts (1 -> 9) from GregTech are a bit too much :P
-		DustUtils.registerDust(new IngredientStack("gunpowder", 100), "gunpowder", 0x242424);
+		DustUtils.registerDust(new IngredientStack("gunpowder", 100), "gunpowder", IIColor.fromPackedRGB(0x242424));
 		DustUtils.registerDust(new IngredientStack("smallGunpowder", 25), "gunpowder");
-		DustUtils.registerDust(new IngredientStack("dustSulfur", 100), "sulfur", 0xbba31d);
+		DustUtils.registerDust(new IngredientStack("dustSulfur", 100), "sulfur", IIColor.fromPackedRGB(0xbba31d));
 		DustUtils.registerDust(new IngredientStack("dustSmallSulfur", 25), "sulfur");
 
-		DustUtils.registerDust(new IngredientStack("dustWood", 100), "sawdust", 0x8c8269);
-		DustUtils.registerDust(new IngredientStack("dustSmallWood", 25), "sawdust", 0x8c8269);
-		DustUtils.registerDust(new IngredientStack("sand", 100), "sand", 0xaca37b);
-		DustUtils.registerDust(new IngredientStack("gravel", 100), "gravel", 0x383937);
+		DustUtils.registerDust(new IngredientStack("dustWood", 100), "sawdust", IIColor.fromPackedRGB(0x8c8269));
+		DustUtils.registerDust(new IngredientStack("dustSmallWood", 25), "sawdust", IIColor.fromPackedRGB(0x8c8269));
+		DustUtils.registerDust(new IngredientStack("sand", 100), "sand", IIColor.fromPackedRGB(0xaca37b));
+		DustUtils.registerDust(new IngredientStack("gravel", 100), "gravel", IIColor.fromPackedRGB(0x383937));
 
 		ResLoc IERes = ResLoc.of(IIReference.RES_IE, "textures/blocks/%s");
 		ResLoc MCRes = ResLoc.of(IIReference.RES_MC, "textures/blocks/%s");
 		ResLoc IIRes = ResLoc.of(IIReference.RES_II, "textures/blocks/metal/%s");
 
+
+		ShrapnelHandler.addShrapnel("white_phosphorus", IIColor.fromPackedRGB(0x6b778a),
+						IERes.with("sheetmetal_aluminum"), 5, 0.3f, 0f)
+				.setFlammable(true);
 		ShrapnelHandler.addShrapnel("aluminum", IIColor.fromPackedRGB(0xd9ecea),
 						IERes.with("sheetmetal_aluminum"), 1, 0.05f, 0f)
 				.setDisruptsRadio(true);
@@ -600,6 +625,8 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 		for(IMultiblock mb : IIContent.MULTIBLOCKS)
 			if(mb instanceof MultiblockStuctureBase)
 				((MultiblockStuctureBase<?>)mb).updateStructure();
+
+		IISounds.init();
 	}
 
 	public void postInit()

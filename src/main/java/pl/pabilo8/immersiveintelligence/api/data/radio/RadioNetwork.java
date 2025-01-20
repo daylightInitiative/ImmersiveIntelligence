@@ -1,8 +1,7 @@
 package pl.pabilo8.immersiveintelligence.api.data.radio;
 
-import pl.pabilo8.immersiveintelligence.common.IIUtils;
+import blusunrize.immersiveengineering.api.DimensionBlockPos;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.common.util.IIMath;
 
 import java.util.ArrayList;
 
@@ -17,16 +16,28 @@ public class RadioNetwork
 	ArrayList<IRadioDevice> devices = new ArrayList<>();
 	ArrayList<IRadioDevice> toRemove = new ArrayList<>();
 
-	public boolean addDevice(IRadioDevice pos)
+	/**
+	 * Adds a Radio device to the global network
+	 *
+	 * @param device the device to be added
+	 * @return if the device was added
+	 */
+	public boolean addDevice(IRadioDevice device)
 	{
-		if(!devices.contains(pos))
+		if(!devices.contains(device))
 		{
-			devices.add(pos);
+			devices.add(device);
 			return true;
 		}
 		return false;
 	}
 
+	/**
+	 * Removes a Radio device from the global network
+	 *
+	 * @param pos the device to be removed
+	 * @return if the device was removed
+	 */
 	public boolean removeDevice(IRadioDevice pos)
 	{
 		if(!toRemove.contains(pos))
@@ -37,7 +48,7 @@ public class RadioNetwork
 		return false;
 	}
 
-	//Don't use that pls
+
 	public void clearDevices()
 	{
 		devices.clear();
@@ -86,12 +97,19 @@ public class RadioNetwork
 
 	}
 
+	/**
+	 * @param device1 the sending radio
+	 * @param device2 the receiving radio
+	 * @return if the distance between the two radios is less than the sending radio's range
+	 */
 	public boolean distanceCheck(IRadioDevice device1, IRadioDevice device2)
 	{
-		float range1 = device1.getRange()*device1.getWeatherRangeDecrease();
-		float range2 = device2.getRange()*device2.getWeatherRangeDecrease();
-
-		return IIMath.distanceBetweenPos(device1.getDevicePosition(), device2.getDevicePosition(), true) <= (range1+range2)/2f;
+		DimensionBlockPos pos1 = device1.getDevicePosition();
+		DimensionBlockPos pos2 = device2.getDevicePosition();
+		if(pos1.dimension!=pos2.dimension)
+			return false;
+		float range = device1.getRange();
+		return pos1.distanceSq(device2.getDevicePosition()) <= range*range;
 	}
 
 }

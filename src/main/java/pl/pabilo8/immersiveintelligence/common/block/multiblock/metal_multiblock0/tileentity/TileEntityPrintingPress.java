@@ -19,9 +19,8 @@ import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import pl.pabilo8.immersiveintelligence.api.data.DataHandlingUtils;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.IDataConnector;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataHandlingUtils;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeInteger;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Machines.PrintingPress;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
@@ -35,6 +34,8 @@ import pl.pabilo8.immersiveintelligence.common.item.ItemIIPrintedPage.SubItems;
 import pl.pabilo8.immersiveintelligence.common.util.IIColor;
 import pl.pabilo8.immersiveintelligence.common.util.IIDamageSources;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
+import pl.pabilo8.immersiveintelligence.common.util.easynbt.SyncNBT;
+import pl.pabilo8.immersiveintelligence.common.util.easynbt.SyncNBT.SyncEvents;
 import pl.pabilo8.immersiveintelligence.common.util.lambda.NBTTagCollector;
 import pl.pabilo8.immersiveintelligence.common.util.multiblock.production.TileEntityMultiblockProductionBase;
 import pl.pabilo8.immersiveintelligence.common.util.multiblock.production.TileEntityMultiblockProductionMulti;
@@ -69,8 +70,8 @@ public class TileEntityPrintingPress extends TileEntityMultiblockProductionMulti
 	static
 	{
 		PRINT_ORDER_PARSERS.put("text", ORDER_PARSER_TEXT = (packet -> {
-			String text = packet.getPacketVariable('t').valueToString();
-			int c = 0, m = 0, y = 0, k = 0;
+			String text = packet.getPacketVariable('t').toString();
+			float c = 0, m = 0, y = 0, k = 0;
 
 			if(!text.isEmpty())
 			{
@@ -79,32 +80,32 @@ public class TileEntityPrintingPress extends TileEntityMultiblockProductionMulti
 
 				while(matcher.find())
 				{
-					// Call IIUtils.rgbToCMYK to get CMYK values
-					float[] cmykValues = IIColor.rgbToCmyk(IIColor.rgbIntToRGB(
-							Integer.parseInt(matcher.group(1).substring(0, 6), 16))
-					);
+					// Get CMYK proportions
+					float[] cmykValues = IIColor.fromHex(matcher.group(1)).getCMYK();
 
 					// Calculate ink usage based on CMYK percentages
-					c += 2*cmykValues[0]; // Fraction of 2 units for cyan
-					m += 2*cmykValues[1]; // Fraction of 2 units for magenta
-					y += 2*cmykValues[2]; // Fraction of 2 units for yellow
-					k += 2*cmykValues[3]; // Fraction of 2 units for black
+					c += PrintingPress.printInkUsage*cmykValues[0]; // Fraction of 2 units for cyan
+					m += PrintingPress.printInkUsage*cmykValues[1]; // Fraction of 2 units for magenta
+					y += PrintingPress.printInkUsage*cmykValues[2]; // Fraction of 2 units for yellow
+					k += PrintingPress.printInkUsage*cmykValues[3]; // Fraction of 2 units for black
 				}
 
+				//For all other text calculate the black ink cost
 				k += pattern.matcher(text)
 						.replaceAll("")
 						.replaceAll(" ", "")
-						.length()*2;
+						.length()*PrintingPress.printInkUsage;
 			}
 
 			ItemStack stack = IIContent.itemPrintedPage.getStack(SubItems.TEXT);
 			EasyNBT.wrapNBT(stack).withString("text", text);
 
-			return new PrintOrder(stack, k, c, m, y);
+			return new PrintOrder(stack, (int)k, (int)c, (int)m, (int)y);
 		}));
 	}
 
 	public ArrayDeque<QueuedPrintOrder> printQueue = new ArrayDeque<>();
+	@SyncNBT(time = 40, events = {SyncEvents.TILE_GUI_OPENED, SyncEvents.TILE_RECIPE_CHANGED})
 	public MultiFluidTank tank;
 
 	IItemHandler inputHandler = new IEInventoryHandler(1, this, SLOT_PAPER, true, true);
@@ -145,8 +146,6 @@ public class TileEntityPrintingPress extends TileEntityMultiblockProductionMulti
 		super.readCustomNBT(nbt, descPacket);
 		if(isDummy())
 			return;
-
-		tank.readFromNBT(nbt.getCompoundTag("tank"));
 		if(nbt.hasKey("print_queue"))
 		{
 			printQueue.clear();
@@ -167,8 +166,6 @@ public class TileEntityPrintingPress extends TileEntityMultiblockProductionMulti
 		super.writeCustomNBT(nbt, descPacket);
 		if(isDummy())
 			return;
-
-		nbt.setTag("tank", tank.writeToNBT(new NBTTagCompound()));
 		EasyNBT.wrapNBT(nbt).withTag("print_queue",
 				printQueue.stream()
 						.map(tuple -> EasyNBT.newNBT()
@@ -178,14 +175,6 @@ public class TileEntityPrintingPress extends TileEntityMultiblockProductionMulti
 						.map(EasyNBT::unwrap)
 						.collect(new NBTTagCollector())
 		);
-	}
-
-	@Override
-	public void receiveMessageFromServer(NBTTagCompound message)
-	{
-		super.receiveMessageFromServer(message);
-		if(message.hasKey("tank"))
-			tank = tank.readFromNBT(message.getCompoundTag("tank"));
 	}
 
 	//--- Properties ---//
@@ -213,9 +202,9 @@ public class TileEntityPrintingPress extends TileEntityMultiblockProductionMulti
 	@Override
 	public void receiveData(DataPacket packet, int pos)
 	{
-		if(packet.getPacketVariable('c').valueToString().equals("callback"))
+		if(packet.getPacketVariable('c').toString().equals("callback"))
 		{
-			DataPacket response = DataHandlingUtils.handleCallback(packet,
+			DataPacket response = IIDataHandlingUtils.handleCallback(packet,
 					var -> {
 						switch(var)
 						{
@@ -237,18 +226,16 @@ public class TileEntityPrintingPress extends TileEntityMultiblockProductionMulti
 						}
 						return null;
 					});
-			IDataConnector conn = IIUtils.findConnectorAround(getBlockPosForPos(pos), world);
-			if(conn!=null)
-				conn.sendPacket(response);
+			IIDataHandlingUtils.sendPacketAdjacently(response, world, getBlockPosForPos(pos), facing);
 		}
 		else
 		{
-			int amount = DataHandlingUtils.asInt('a', packet);
+			int amount = IIDataHandlingUtils.asInt('a', packet);
 			if(amount <= 0)
 				return;
 
 
-			PrintOrder printOrder = PRINT_ORDER_PARSERS.getOrDefault(DataHandlingUtils.asString('m', packet), ORDER_PARSER_TEXT).apply(packet);
+			PrintOrder printOrder = PRINT_ORDER_PARSERS.getOrDefault(IIDataHandlingUtils.asString('m', packet), ORDER_PARSER_TEXT).apply(packet);
 			if(printOrder!=null)
 				printQueue.add(new QueuedPrintOrder(amount, printOrder));
 			forceTileUpdate();

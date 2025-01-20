@@ -17,9 +17,8 @@ import net.minecraft.util.math.Vec3d;
 import pl.pabilo8.immersiveintelligence.api.ammo.AmmoRegistry;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.IAmmoTypeItem;
 import pl.pabilo8.immersiveintelligence.api.ammo.utils.IIAmmoUtils;
-import pl.pabilo8.immersiveintelligence.api.data.DataHandlingUtils;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.IDataConnector;
+import pl.pabilo8.immersiveintelligence.api.data.IIDataHandlingUtils;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeBoolean;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeFloat;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeInteger;
@@ -87,9 +86,9 @@ public class TileEntityBallisticComputer extends TileEntityMultiblockIIGeneric<T
 		if(!packet.hasAnyVariables('x', 'y', 'z'))
 			return;
 
-		float x = DataHandlingUtils.asFloat('x', packet);
-		float y = DataHandlingUtils.asFloat('y', packet);
-		float z = DataHandlingUtils.asFloat('z', packet);
+		float x = IIDataHandlingUtils.asFloat('x', packet);
+		float y = IIDataHandlingUtils.asFloat('y', packet);
+		float z = IIDataHandlingUtils.asFloat('z', packet);
 		packet.removeVariables('x', 'y', 'z');
 
 		double mass = 0;
@@ -102,7 +101,7 @@ public class TileEntityBallisticComputer extends TileEntityMultiblockIIGeneric<T
 			ItemStack stack = t.value;
 			if(stack.getItem() instanceof IAmmoTypeItem)
 			{
-				IAmmoTypeItem bullet = (IAmmoTypeItem)stack.getItem();
+				IAmmoTypeItem<?, ?> bullet = (IAmmoTypeItem<?, ?>)stack.getItem();
 				force = bullet.getVelocity();
 				mass = bullet.getMass(stack);
 			}
@@ -117,7 +116,7 @@ public class TileEntityBallisticComputer extends TileEntityMultiblockIIGeneric<T
 				force = packet.getVarInType(DataTypeInteger.class, packet.getPacketVariable('f')).value;
 			if(packet.hasVariable('t'))
 			{
-				String bname = packet.getPacketVariable('t').valueToString();
+				String bname = packet.getPacketVariable('t').toString();
 				IAmmoTypeItem<?, ?> bullet = AmmoRegistry.getAmmoItem(bname);
 				if(bullet!=null)
 					force = bullet.getVelocity();
@@ -153,12 +152,7 @@ public class TileEntityBallisticComputer extends TileEntityMultiblockIIGeneric<T
 		packet.setVariable('y', new DataTypeFloat(yaw));
 		packet.setVariable('p', new DataTypeFloat(pitch));
 
-
-		IDataConnector conn = IIUtils.findConnectorFacing(
-				getBlockPosForPos(multiblock.getPointOfInterest("data_output")),
-				world, mirrored?facing.rotateYCCW(): facing.rotateY());
-		if(conn!=null)
-			conn.sendPacket(packet);
+		sendData(packet, facing, multiblock.getPointOfInterest("data_output"));
 	}
 
 	@Override

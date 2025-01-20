@@ -11,6 +11,7 @@ import pl.pabilo8.immersiveintelligence.common.block.metal_device.BlockIIMetalDe
 import pl.pabilo8.immersiveintelligence.common.crafting.IIRecipes;
 import pl.pabilo8.immersiveintelligence.common.item.crafting.ItemIIMaterial.Materials;
 import pl.pabilo8.immersiveintelligence.common.item.crafting.ItemIIPrecisionTool.PrecisionTools;
+import pl.pabilo8.immersiveintelligence.common.item.crafting.material.ItemIIMaterialDust.MaterialsDust;
 import pl.pabilo8.immersiveintelligence.common.item.data.ItemIIFunctionalCircuit.Circuits;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
@@ -48,9 +49,15 @@ public class IIManualCategoryData extends IIManualCategory
 						BlueprintCraftingRecipe.getTypedBlueprint("processors"),
 						BlueprintCraftingRecipe.getTypedBlueprint("cryptography_circuits")
 				))
-				.addSource("basic_circuit_blueprints", getSourceForItems(
-						BlueprintCraftingRecipe.getTypedBlueprint("basic_circuits")
-
+				.addSource("basic_circuit_blueprints", getSourceForBlueprint("basic_circuits"))
+				.addSource("advanced_electronic_alloy", getSourceForItem(
+						IIContent.itemMaterialDust.getStack(MaterialsDust.ADVANCED_ELECTRONIC_ALLOY)
+				))
+				.addSource("all_circuits", getSourceForItems(
+						IIRecipes.BASIC_CIRCUIT,
+						IIContent.itemMaterial.getStack(Materials.ADVANCED_CIRCUIT_BOARD),
+						IIContent.itemMaterial.getStack(Materials.CRYPTOGRAPHIC_CIRCUIT_BOARD),
+						IIContent.itemMaterial.getStack(Materials.PROCESSOR_CIRCUIT_BOARD)
 				))
 				.addSource("basic_general", getSourceForItems(
 						IIContent.itemMaterial.getStack(Materials.BASIC_CIRCUIT_BOARD_RAW),
@@ -59,13 +66,10 @@ public class IIManualCategoryData extends IIManualCategory
 						IIContent.itemMaterial.getStack(Materials.BASIC_ELECTRONIC_ELEMENT)
 				))
 				.addSource("basic_electronic_element", getSourceForItems(
-
 						IIContent.itemMaterial.getStack(Materials.BASIC_ELECTRONIC_ELEMENT)
 				))
-				.addSource("advanced_circuit_blueprints", getSourceForItems(
-						BlueprintCraftingRecipe.getTypedBlueprint("advanced_circuits")
-
-				))
+				.addSource("cryptography_circuit", getSourceForBlueprint("cryptography_circuits"))
+				.addSource("advanced_circuit_blueprints", getSourceForBlueprint("advanced_circuits"))
 				.addSource("advanced_general", getSourceForItems(
 						IIContent.itemMaterial.getStack(Materials.ADVANCED_CIRCUIT_BOARD_RAW),
 						IIContent.itemMaterial.getStack(Materials.ADVANCED_CIRCUIT_BOARD_ETCHED),
@@ -76,10 +80,7 @@ public class IIManualCategoryData extends IIManualCategory
 
 						IIContent.itemMaterial.getStack(Materials.ADVANCED_ELECTRONIC_ELEMENT)
 				))
-				.addSource("processors_blueprints", getSourceForItems(
-						BlueprintCraftingRecipe.getTypedBlueprint("processors")
-
-				))
+				.addSource("processors_blueprints", getSourceForBlueprint("processors"))
 				.addSource("processor_general", getSourceForItems(
 						IIContent.itemMaterial.getStack(Materials.PROCESSOR_CIRCUIT_BOARD_RAW),
 						IIContent.itemMaterial.getStack(Materials.PROCESSOR_CIRCUIT_BOARD_ETCHED),
@@ -135,15 +136,18 @@ public class IIManualCategoryData extends IIManualCategory
 				.addSource("reader", getSourceForItem(IIContent.blockMetalDevice.getStack(IIBlockTypes_MetalDevice.PUNCHTAPE_READER)))
 				.addSource("writer", getSourceForItem(IIContent.blockMetalDevice.getStack(IIBlockTypes_MetalDevice.PUNCHTAPE_READER)));
 		addEntry("arithmetic_logic_machine");
-		IIManualEntry functionalCircuits = addEntry("functional_circuits")
+		IIManualEntry functionalCircuits = addEntry("functions/_functional_circuits")
 				.addSource("circuit_blueprints", getSourceForItems(
 						BlueprintCraftingRecipe.getTypedBlueprint("basic_functional_circuits"),
 						BlueprintCraftingRecipe.getTypedBlueprint("advanced_functional_circuits"),
 						BlueprintCraftingRecipe.getTypedBlueprint("processor_functional_circuits")
 				));
 		for(Circuits circuit : Circuits.values())
+		{
 			functionalCircuits.addSource(circuit.getName(), getSourceForItem(IIContent.itemCircuit.getStack(circuit)));
-
+			addEntry("functions/"+circuit.getName());
+		}
+		addEntry("computers/data_pol");
 
 		addEntry("redstone_interface");
 
@@ -159,6 +163,7 @@ public class IIManualCategoryData extends IIManualCategory
 		addEntry("radio_station");
 		addEntry("printing_press");
 		addEntry("scanning_conveyor");
+		addEntry("programmable_speaker");
 
 		addEntry("chemical_bath");
 		addEntry("chemical_painter");
@@ -171,58 +176,5 @@ public class IIManualCategoryData extends IIManualCategory
 								.toArray(ItemStack[]::new)
 				));
 
-		addEntry("functions/arithmetic");
-		addEntry("folder/device/sekritdokuments/data_pol");
-
-		/*
-		ManualHelper.addEntry("redstone_interface", getCategory(),
-				new ManualPageMultiblock(ManualHelper.getManual(), "redstone_interface0", MultiblockRedstoneInterface.INSTANCE),
-				new ManualPages.Text(ManualHelper.getManual(), "redstone_interface1")
-		);
-
-		ManualHelper.addEntry("printing_press", getCategory(),
-				new ManualPageMultiblock(ManualHelper.getManual(), "printing_press0", MultiblockPrintingPress.INSTANCE),
-				new ManualPages.Text(ManualHelper.getManual(), "printing_press1"),
-				new ManualPages.Text(ManualHelper.getManual(), "printing_press2"),
-				new IIManualPageDataVariables(ManualHelper.getManual(), "printing_press", true)
-						.addEntry(new DataTypeInteger(), 'a')
-						.addEntry(new DataTypeString(), 'm')
-						.addEntry(new DataTypeString(), 't'),
-				new IIManualPageDataVariablesCallback(ManualHelper.getManual(), "printing_press")
-						.addEntry(new DataTypeInteger(), "get_ink", "get_ink_black")
-						.addEntry(new DataTypeInteger(), "get_ink_cyan")
-						.addEntry(new DataTypeInteger(), "get_ink_magenta")
-						.addEntry(new DataTypeInteger(), "get_ink_yellow")
-						.addEntry(new DataTypeInteger(), "get_energy")
-						.addEntry(new DataTypeInteger(), "get_paper")
-
-		);
-
-		ManualHelper.addEntry("radio_station", getCategory(),
-				new ManualPageMultiblock(ManualHelper.getManual(), "radio_station0", MultiblockRadioStation.INSTANCE),
-				new ManualPages.Text(ManualHelper.getManual(), "radio_station1"),
-				new ManualPages.ItemDisplay(ManualHelper.getManual(), "radio_station2",
-						new ItemStack(IIContent.itemRadioTuner, 1, 0),
-						new ItemStack(IIContent.itemRadioTuner, 1, 1)
-				)
-		);
-
-		ManualHelper.addEntry("small_data_devices", getCategory(),
-				new ManualPages.Crafting(ManualHelper.getManual(), "data_merger", new ItemStack(IIContent.blockMetalDevice, 1, IIBlockTypes_MetalDevice.DATA_MERGER.getMeta())),
-				new ManualPages.Crafting(ManualHelper.getManual(), "data_router", new ItemStack(IIContent.blockMetalDevice, 1, IIBlockTypes_MetalDevice.DATA_ROUTER.getMeta())),
-				new ManualPages.Crafting(ManualHelper.getManual(), "redstone_buffer", new ItemStack(IIContent.blockMetalDevice, 1, IIBlockTypes_MetalDevice.REDSTONE_BUFFER.getMeta())),
-				new ManualPages.Crafting(ManualHelper.getManual(), "timed_buffer", new ItemStack(IIContent.blockMetalDevice, 1, IIBlockTypes_MetalDevice.TIMED_BUFFER.getMeta())),
-				new ManualPages.Crafting(ManualHelper.getManual(), "small_data_buffer", new ItemStack(IIContent.blockMetalDevice, 1, IIBlockTypes_MetalDevice.SMALL_DATA_BUFFER.getMeta()))
-
-		);
-
-		ManualHelper.addEntry("programmable_speaker", getCategory(),
-				new ManualPages.Crafting(ManualHelper.getManual(), "programmable_speaker0", new ItemStack(IIContent.blockDataConnector, 1, IIBlockTypes_Connector.PROGRAMMABLE_SPEAKER.getMeta())),
-				new IIManualPageDataVariables(ManualHelper.getManual(), "programmable_speaker", true)
-						.addEntry(new DataTypeBoolean(), 'o')
-						.addEntry(new DataTypeString(), 's')
-						.addEntry(new DataTypeInteger(), 'v')
-						.addEntry(new DataTypeInteger(), 't')
-		);*/
 	}
 }

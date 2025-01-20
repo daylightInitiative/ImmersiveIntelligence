@@ -3,33 +3,25 @@ package pl.pabilo8.immersiveintelligence.client.fx.particles;
 import blusunrize.immersiveengineering.client.ClientUtils;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import pl.pabilo8.immersiveintelligence.client.fx.builder.ParticleBuilder;
-import pl.pabilo8.immersiveintelligence.client.fx.prefab.IProgrammableParticle;
-import pl.pabilo8.immersiveintelligence.client.fx.prefab.IScalableParticle;
-import pl.pabilo8.immersiveintelligence.client.fx.prefab.ITexturedParticle;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.IIParticleProperties;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
+import pl.pabilo8.immersiveintelligence.client.fx.factories.ParticleFactory;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProperties;
 import pl.pabilo8.immersiveintelligence.common.util.IIColor;
-import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
-import java.util.function.BiConsumer;
+import javax.annotation.Nonnull;
 
 /**
  * @author Pabilo8 (pabilo@iiteam.net)
  * @ii-approved 0.3.1
  * @since 13.05.2024
  */
-public class ParticleVanilla extends IIParticle implements IProgrammableParticle<ParticleVanilla>, ITexturedParticle, IScalableParticle
+public class ParticleVanilla extends AbstractParticle
 {
 	private IIColor color = IIColor.WHITE;
-	private double size = 1, scale = 1;
-	/**
-	 * Programmable animation for the particle
-	 */
-	private BiConsumer<ParticleVanilla, Float> program = null;
+	private float size = 1, scale = 1;
 	/**
 	 * Texture shift amount
 	 */
@@ -40,10 +32,10 @@ public class ParticleVanilla extends IIParticle implements IProgrammableParticle
 	private TextureAtlasSprite[] textures = new TextureAtlasSprite[0];
 
 	/**
-	 * Extending constructors should be passed as a parameter to {@link ParticleBuilder}
+	 * Extending constructors should be passed as a parameter to {@link ParticleFactory}
 	 *
-	 * @param world
-	 * @param pos
+	 * @param world The world
+	 * @param pos   The position
 	 */
 	public ParticleVanilla(World world, Vec3d pos)
 	{
@@ -52,36 +44,102 @@ public class ParticleVanilla extends IIParticle implements IProgrammableParticle
 
 	//--- Properties ---//
 
+	@Nonnull
 	@Override
-	public void setProperties(EasyNBT properties)
+	public Object getProperty(ParticleProperties key)
 	{
-		super.setProperties(properties);
-		properties.checkSetDouble(IIParticleProperties.SIZE, s -> size = s);
-		properties.checkSetDouble(IIParticleProperties.SCALE, s -> scale = s);
-		properties.checkSetInt(IIParticleProperties.TEXTURE_SHIFT, s -> textureShift = s);
-		properties.checkSetColor(IIParticleProperties.COLOR, c -> color = c);
+		switch(key)
+		{
+			case COLOR:
+				return color;
+			case RED:
+				return color.red;
+			case GREEN:
+				return color.green;
+			case BLUE:
+				return color.blue;
+			case ALPHA:
+				return color.alpha;
+
+			case SIZE:
+				return size;
+			case SCALE:
+				return scale;
+			case TEXTURE_SHIFT:
+				return textureShift;
+			case TEXTURES:
+				return textures;
+			case TEXTURES_COUNT:
+				return textures.length;
+			default:
+				return super.getProperty(key);
+		}
 	}
 
 	@Override
-	public EasyNBT getProperties(EasyNBT eNBT)
+	public void setProperty(ParticleProperties key, Object value)
 	{
-		return super.getProperties(eNBT)
-				.withDouble(IIParticleProperties.SIZE, size)
-				.withDouble(IIParticleProperties.SCALE, scale)
-				.withInt(IIParticleProperties.TEXTURE_SHIFT, textureShift)
-				.withColor(IIParticleProperties.COLOR, color);
+		switch(key)
+		{
+			case SIZE:
+				size = (float)value;
+				break;
+			case SCALE:
+				scale = (float)value;
+				break;
+
+			case COLOR:
+				color = (IIColor)value;
+				break;
+			case RED:
+				color = color.withRed((float)value);
+				break;
+			case GREEN:
+				color = color.withGreen((float)value);
+				break;
+			case BLUE:
+				color = color.withBlue((float)value);
+				break;
+			case ALPHA:
+				color = color.withAlpha((float)value);
+				break;
+
+			case TEXTURE_SHIFT:
+				textureShift = (int)value;
+				break;
+			case TEXTURES:
+				setTextures((ResourceLocation[])value);
+				break;
+			case TEXTURES_COUNT:
+				break; //do nothing
+			default:
+				super.setProperty(key, value);
+				break;
+		}
 	}
+
 
 	//--- Rendering ---//
 
 	@Override
+	public void preRender(float partialTicks, float x, float xz, float z, float yz, float xy)
+	{
+		programs.forEach(p -> p.onParticleRender(this, partialTicks));
+
+		this.matrix.setIdentity();
+		this.matrix.translate(
+				pos.x+motion.x*interpTicks-interPos.x,
+				pos.y+motion.y*interpTicks-interPos.y,
+				pos.z+motion.z*interpTicks-interPos.z
+		);
+		//TODO: 23.12.2024 use matrix instead of calculations in render
+
+
+	}
+
+	@Override
 	public void render(BufferBuilder buffer, float partialTicks, float x, float xz, float z, float yz, float xy)
 	{
-		//Execute program
-		if(program!=null)
-			program.accept(this, partialTicks);
-
-		//Get scale for position camera transform
 		double fSize = this.size*this.scale;
 
 		//Get brightness
@@ -91,11 +149,12 @@ public class ParticleVanilla extends IIParticle implements IProgrammableParticle
 
 		//Calculate the position camera transform, so it's relative to the viewpoint
 		Vec3d[] avec3d = new Vec3d[]{
-				new Vec3d(-x*fSize-xy*fSize, -z*fSize, -yz*fSize-xz*fSize),
-				new Vec3d(-x*fSize+xy*fSize, z*fSize, -yz*fSize+xz*fSize),
-				new Vec3d(x*fSize+xy*fSize, z*fSize, yz*fSize+xz*fSize),
-				new Vec3d(x*fSize-xy*fSize, -z*fSize, yz*fSize-xz*fSize)
+				new Vec3d(-x*fSize-yz*fSize, -xz*fSize, -z*fSize-xy*fSize),
+				new Vec3d(-x*fSize+yz*fSize, xz*fSize, -z*fSize+xy*fSize),
+				new Vec3d(x*fSize+yz*fSize, xz*fSize, z*fSize+xy*fSize),
+				new Vec3d(x*fSize-yz*fSize, -xz*fSize, z*fSize-xy*fSize)
 		};
+
 
 		//Get UV values
 		TextureAtlasSprite texture = textures[textureShift%textures.length];
@@ -103,6 +162,11 @@ public class ParticleVanilla extends IIParticle implements IProgrammableParticle
 		float v = texture.getMinV();
 		float uu = texture.getMaxU();
 		float vv = texture.getMaxV();
+
+
+		float posX = (float)(pos.x+motion.x*interpTicks-interPos.x);
+		float posY = (float)(pos.y+motion.y*interpTicks-interPos.y);
+		float posZ = (float)(pos.z+motion.z*interpTicks-interPos.z);
 
 		//Put into buffer
 		buffer.pos(posX+avec3d[0].x, posY+avec3d[0].y, posZ+avec3d[0].z)
@@ -123,82 +187,19 @@ public class ParticleVanilla extends IIParticle implements IProgrammableParticle
 				.lightmap(j, k).endVertex();
 	}
 
-	//--- ITexturedParticle ---//
-
-	@Override
-	public void retexture(int textureID, ResLoc textureLocation)
-	{
-		if(textures.length > textureID)
-			textures[textureID] = ClientUtils.getSprite(textureLocation);
-	}
-
-	@Override
-	public void setTextures(TextureAtlasSprite[] textures)
-	{
-		this.textures = textures;
-	}
-
-	@Override
-	public void setTextureShift(int textureShift)
-	{
-		this.textureShift = textureShift;
-	}
-
-	@Override
-	public float getTexturesCount()
-	{
-		return textures.length;
-	}
-
-	@Override
-	public void setColor(IIColor color)
-	{
-		this.color = color;
-	}
-
-	@Override
-	public IIColor getColor()
-	{
-		return color;
-	}
-
-	//--- IResizableParticle ---//
-
-	@Override
-	public void setSize(double size)
-	{
-		this.size = size;
-	}
-
-	@Override
-	public double getSize()
-	{
-		return size;
-	}
-
-	@Override
-	public void setProgram(BiConsumer<ParticleVanilla, Float> program)
-	{
-		this.program = program;
-	}
 
 	//--- Utils ---//
 
+	public void setTextures(ResourceLocation[] textures)
+	{
+		this.textures = new TextureAtlasSprite[textures.length];
+		for(int i = 0; i < textures.length; i++)
+			this.textures[i] = ClientUtils.getSprite(textures[i]);
+	}
+
 	private int getBrightnessForRender()
 	{
-		BlockPos blockpos = new BlockPos(this.posX, this.posY, this.posZ);
-		return this.world.isBlockLoaded(blockpos)?this.world.getCombinedLight(blockpos, 0): 0;
-	}
-
-	@Override
-	public Vec3d getScale()
-	{
-		return new Vec3d(scale, scale, scale);
-	}
-
-	@Override
-	public void setScale(Vec3d scale)
-	{
-		this.scale = scale.x*scale.y*scale.z;
+		BlockPos blockPos = new BlockPos(this.pos.x, this.pos.y, this.pos.z);
+		return this.world.isBlockLoaded(blockPos)?this.world.getCombinedLight(blockPos, 0): 0;
 	}
 }

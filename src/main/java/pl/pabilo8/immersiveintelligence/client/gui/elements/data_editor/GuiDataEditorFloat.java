@@ -34,7 +34,7 @@ public class GuiDataEditorFloat extends GuiDataEditor<DataTypeFloat>
 		this.valueEdit = new GuiTextField(0, renderer,
 				x+2, y+12, width-4, 20);
 		this.valueEdit.setFocused(true);
-		this.valueEdit.setText(dataType.valueToString());
+		this.valueEdit.setText(dataType.toString());
 		this.valueEdit.updateCursorCounter();
 	}
 
@@ -55,7 +55,7 @@ public class GuiDataEditorFloat extends GuiDataEditor<DataTypeFloat>
 	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks)
 	{
 		super.drawButton(mc, mouseX, mouseY, partialTicks);
-		renderer.drawString(valueLabel, x+2, y+2, IIReference.COLOR_H1, false);
+		renderer.drawString(valueLabel, x+2, y+2, IIReference.COLOR_H1.getPackedRGB(), false);
 
 		this.valueEdit.drawTextBox();
 	}
@@ -78,7 +78,6 @@ public class GuiDataEditorFloat extends GuiDataEditor<DataTypeFloat>
 	@Override
 	public DataTypeFloat outputType()
 	{
-		dataType.setDefaultValue();
 		dataType.value = getFieldValue();
 		return dataType;
 	}
@@ -94,8 +93,7 @@ public class GuiDataEditorFloat extends GuiDataEditor<DataTypeFloat>
 		try
 		{
 			return Float.parseFloat(valueEdit.getText());
-		}
-		catch(NumberFormatException ignored)
+		} catch(NumberFormatException ignored)
 		{
 			return 0;
 		}

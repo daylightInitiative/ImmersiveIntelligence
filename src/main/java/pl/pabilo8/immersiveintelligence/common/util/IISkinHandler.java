@@ -9,10 +9,10 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import pl.pabilo8.immersiveintelligence.client.manual.pages.IIManualPageContributorSkin;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.client.util.amt.IIAnimationLoader;
 import pl.pabilo8.immersiveintelligence.common.IILogger;
 
+import javax.annotation.Nullable;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
@@ -44,37 +44,36 @@ public class IISkinHandler
 
 	/**
 	 * Prepare all skins sprites for <code>skinnable</code>. Used for models that use <code>obj</code> format to render models. This should be used inside skinnable's <code>registerSprites</code> function.
-	 * @param map Texture map
+	 *
+	 * @param map       Texture map
 	 * @param skinnable Skinnable name
 	 */
 	public static void registerSprites(TextureMap map, String skinnable)
 	{
-		for (Map.Entry<String, IISpecialSkin> entry : specialSkins.entrySet())
+		for(Map.Entry<String, IISpecialSkin> entry : specialSkins.entrySet())
 		{
 			IISpecialSkin skin = entry.getValue();
-			if (skin.doesApply(skinnable))
+			if(skin.doesApply(skinnable))
 				IIAnimationLoader.preloadTexturesFromMTL(ResLoc.of(IIReference.RES_TEXTURES_SKIN, skin.name, "/", skinnable).withExtension(ResLoc.EXT_MTL), map);
 		}
 	}
 
 	/**
 	 * Get skin by its name.
+	 *
 	 * @param skin Skin name
 	 * @return {@link IISpecialSkin} if skin exists otherwise <code>null</code>
 	 */
+	@Nullable
 	public static IISpecialSkin getSkin(String skin)
 	{
-		if (!isValidSkin(skin)) return null;
+		if(!isValidSkin(skin)) return null;
 		return specialSkins.get(skin);
-	}
-
-	public static String getItemSkin(ItemStack item)
-	{
-		return ItemNBTHelper.getString(item, NBT_ENTRY);
 	}
 
 	/**
 	 * Check if skin exists in the list.
+	 *
 	 * @param skin Skin name
 	 * @return If skin exists in the list.
 	 */
@@ -115,6 +114,7 @@ public class IISkinHandler
 
 		/**
 		 * Check if the skin applies to specific skinnable
+		 *
 		 * @param skinnableName Name of the skinnable to check
 		 * @return If skin can be applied to specified <code>skinnable</code>
 		 */
@@ -194,8 +194,8 @@ public class IISkinHandler
 			try
 			{
 				IILogger.info("Attempting to download II special skin list from GitHub");
-				//URL url = new URL("https://raw.githubusercontent.com/Pabilo8/ImmersiveIntelligence/master/contributor_skins.json");
-				URL url = new URL("https://raw.githubusercontent.com/VDeltaGabriel/ImmersiveIntelligenceDEV/master/contributor_skins.json"); // TESTING PURPOSES ONLY
+				URL url = new URL("https://raw.githubusercontent.com/Pabilo8/ImmersiveIntelligence/dev/main/contributor_skins.json");
+				// URL url = new URL("https://raw.githubusercontent.com/VDeltaGabriel/ImmersiveIntelligenceDEV/master/contributor_skins.json"); // TESTING PURPOSES ONLY
 				specialSkins.clear();
 				specialSkinsByUUID.clear();
 				JsonStreamParser parser = new JsonStreamParser(new InputStreamReader(url.openStream()));
@@ -256,7 +256,7 @@ public class IISkinHandler
 		if(contributor_skins==null)
 		{
 			contributor_skins = new ManualEntry("contributor_skins", IIReference.CAT_WARFARE);
-			ManualHelper.getManual().manualContents.put(IIReference.CAT_WARFARE,contributor_skins);
+			ManualHelper.getManual().manualContents.put(IIReference.CAT_WARFARE, contributor_skins);
 		}
 
 		contributor_skins.setPages(skin_pages.toArray(new ManualPages[]{}));
