@@ -1,7 +1,7 @@
 {
   "type": "ParticleModel",
   "models": ["cloth1.obj", "cloth2.obj", "cloth3.obj", "cloth4.obj", "cloth5.obj"],
-  "life_time": 80,
+  "life_time": 60,
   "draw_stage": "custom_additive",
   "programs": [
     "shockwave_transition"
