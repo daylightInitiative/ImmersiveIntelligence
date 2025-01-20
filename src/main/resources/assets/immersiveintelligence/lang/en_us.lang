@@ -217,6 +217,7 @@ item.immersiveintelligence.rifle.name=Rifle
 item.immersiveintelligence.rifle_handmade.name=Handmade Rifle
 item.immersiveintelligence.shotgun.name=Shotgun
 item.immersiveintelligence.shotgun_handmade.name=Handmade Shotgun
+item.immersiveintelligence.pistol.name=Pistol
 
 #Drillheads
 item.immersiveintelligence.drillhead.tungsten.name=Tungsten Drill Head
@@ -251,6 +252,12 @@ item.immersiveintelligence.weapon_upgrade.railgun_assisted_chamber.name=Railgun-
 
 item.immersiveintelligence.weapon_upgrade.semi_automatic.name=Semi-Automatic Firing Mechanism
 item.immersiveintelligence.weapon_upgrade.extended_barrel.name=Extended Barrel
+
+item.immersiveintelligence.weapon_upgrade.shotgun_extended_magazine.name=Extended Shotgun Magazine
+item.immersiveintelligence.weapon_upgrade.shotgun_revolver_drum_magazine.name=Shotgun Revolver Drum
+item.immersiveintelligence.weapon_upgrade.shotgun_sawed_off_barrel.name=Sawed Off Barrel
+
+item.immersiveintelligence.weapon_upgrade.smg_mag_converter_kit.name=SMG Magazine Conversion Kit
 
 item.immersiveintelligence.armor_upgrade.gasmask.name=Gas Mask
 item.immersiveintelligence.armor_upgrade.infiltrator_gear.name=Infiltrator's Headgear
@@ -293,6 +300,8 @@ desc.immersiveintelligence.toolupgrade.item.mortar=Mortar
 desc.immersiveintelligence.toolupgrade.item.assault_rifle=Assault Rifle
 desc.immersiveintelligence.toolupgrade.item.autorevolver=Autorevolver
 desc.immersiveintelligence.toolupgrade.item.rifle=Rifle
+desc.immersiveintelligence.toolupgrade.item.shotgun=Shotgun
+desc.immersiveintelligence.toolupgrade.item.pistol=Pistol
 
 desc.immersiveintelligence.filled_casing=Filled with Gunpowder
 desc.immersiveintelligence.explosives_programmed=Programmed with a Data Packet
@@ -330,6 +339,13 @@ desc.immersiveintelligence.toolupgrade.semi_automatic=Allows loading ammunition 
 desc.immersiveintelligence.toolupgrade.extended_barrel=Increases velocity of bullets fired in manual fire mode. Decreases fire rate.
 
 desc.immersiveintelligence.toolupgrade.gasmask=Protects the user from hazardous gasses.
+
+desc.immersiveintelligence.toolupgrade.smg_mag_converter_kit=Allows the user to use SMG magazines instead of regual Pistol Magazines.
+
+desc.immersiveintelligence.toolupgrade.shotgun_sawed_off_barrel=Increases velocity of bullets fired.
+desc.immersiveintelligence.toolupgrade.shotgun_revolver_drum_magazine=Allows the user to use a Revolver style Magazine.
+desc.immersiveintelligence.toolupgrade.shotgun_extended_magazine=Increases shell capacity from 4 to 8.
+
 
 desc.immersiveintelligence.toolupgrade.infiltrator_gear=Allows nightvision and magnification, requires energy to operate.
 desc.immersiveintelligence.toolupgrade.technician_gear=Displays tooltips, which normally require a hammer, a voltmeter or a wrench to be held, requires energy to operate.
@@ -427,8 +443,12 @@ item.immersiveintelligence.revolver_1bcal.core.name=Revolver Bullet Core
 item.immersiveintelligence.revolver_1bcal.bullet.name=Revolver Bullet
 
 item.immersiveintelligence.ammo_casing.shotgun_3bcal.name=Shotgun Shell Casing
-item.immersiveintelligence.shotgun_3bcal.core.name=Shotgun Bullet Core
-item.immersiveintelligence.shotgun_3bcal.bullet.name=Shotgun Shell
+item.immersiveintelligence.gun_3bcal.core.name=Shotgun Bullet Core
+item.immersiveintelligence.gun_3bcal.bullet.name=Shotgun Shell
+
+item.immersiveintelligence.ammo_casing.pistol_1bcal.name=Pistol Shell Casing
+item.immersiveintelligence..pistol_1bcal.name=Pistol Bullet Core
+item.immersiveintelligence.pistol_1bcal.bullet.name=Pistol Bullet
 
 item.immersiveintelligence.ammo_casing.autocannon_3bcal.name=Autocannon Shell Casing
 item.immersiveintelligence.autocannon_3bcal.core.name=Autocannon Shell Core
@@ -476,7 +496,6 @@ item.immersiveintelligence.bullet_magazine.assault_rifle.name=Assault Rifle Maga
 item.immersiveintelligence.bullet_magazine.autocannon.name=Autocannon Magazine
 item.immersiveintelligence.bullet_magazine.cpds_drum.name=CPDS Drum Magazine
 item.immersiveintelligence.bullet_magazine.rifle.name=Rifle Magazine
-item.immersiveintelligence.bullet_magazine.shotgun.name=Shotgun Revolver Drum Magazine
 
 item.immersiveintelligence.casing_pouch.name=Spent Casings Pouch
 
@@ -1291,6 +1310,8 @@ desc.immersiveintelligence.bullet_core_type.piercing=Armor-Piercing
 desc.immersiveintelligence.bullet_core_type.piercing_sabot=Sabot
 desc.immersiveintelligence.bullet_core_type.canister=Canister
 desc.immersiveintelligence.bullet_core_type.cluster=Cluster
+desc.immersiveintelligence.bullet_core_type.birdshot=Birtshot
+desc.immersiveintelligence.bullet_core_type.buckshot=Buckshot
 
 desc.immersiveintelligence.bullet_fuse.contact=Contact
 desc.immersiveintelligence.bullet_fuse.timed=Timed

@@ -66,13 +66,14 @@ public class ItemIIBulletMagazine extends ItemIISubItemsBase<Magazines> implemen
 		MACHINEGUN(48, IIContent.itemAmmoMachinegun),
 		SUBMACHINEGUN(24, IIContent.itemAmmoSubmachinegun, true),
 		RIFLE(12, IIContent.itemAmmoMachinegun),
-		//SHOTGUN(12, IIContent.itemAmmoShotgun),
+		SHOTGUN(12, IIContent.itemAmmoShotgun),
 		SUBMACHINEGUN_DRUM(64, IIContent.itemAmmoSubmachinegun),
 		ASSAULT_RIFLE(32, IIContent.itemAmmoAssaultRifle, true),
 		AUTOCANNON(16, IIContent.itemAmmoAutocannon),
 		CPDS_DRUM(128, IIContent.itemAmmoMachinegun),
 		@IIItemProperties(hidden = true)
-		AUTOMATIC_REVOLVER(16, IIContent.itemAmmoRevolver);
+		AUTOMATIC_REVOLVER(16, IIContent.itemAmmoRevolver),
+		PISTOL(16, IIContent.itemAmmoPistol);
 
 		public final int capacity;
 		public final IAmmoTypeItem ammo;

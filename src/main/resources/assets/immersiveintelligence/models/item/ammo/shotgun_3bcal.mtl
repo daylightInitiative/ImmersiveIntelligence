@@ -1,0 +1,6 @@
+# Made with Blockbench
+
+newmtl 3bcal_shotgunshell
+map_Kd immersiveintelligence:entity/ammo/3bcal_shotgunshell
+newmtl gunpowder
+map_Kd immersiveintelligence:entity/ammo/gunpowder

@@ -1,0 +1,4 @@
+newmtl shotgun
+map_Kd immersiveintelligence:items/weapons/shotgun_handmade
+newmtl 3bcal_shotgunshell
+map_Kd immersiveintelligence:items/weapons/3bcal_shotgunshell
