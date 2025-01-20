@@ -20,7 +20,7 @@ import net.minecraftforge.client.model.obj.OBJModel;
 import pl.pabilo8.immersiveintelligence.api.ammo.AmmoRegistry;
 import pl.pabilo8.immersiveintelligence.api.ammo.enums.CoreType;
 import pl.pabilo8.immersiveintelligence.client.fx.IIParticles;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
+import pl.pabilo8.immersiveintelligence.common.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.client.util.amt.*;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMTBullet.BulletState;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Weapons.Pistol;
@@ -258,7 +258,7 @@ public class PistolRenderer extends IIUpgradableItemRendererAMT<ItemIIPistol> im
 								//Ammo
 								new AMTBullet("bullet", combinedHeader, AmmoRegistry.getModel(IIContent.itemAmmoSubmachinegun))
 										.withState(BulletState.BULLET_UNUSED).withState(BulletState.BULLET_UNUSED)
-										.withProperties(IIContent.ammoCoreBrass, CoreType.PIERCING, -1),
+										.withProperties(IIContent.ammoCoreBrass, CoreType.PIERCING, null),
 								new AMTBullet("casing_fired", combinedHeader, AmmoRegistry.getModel(IIContent.itemAmmoSubmachinegun))
 										.withState(BulletState.CASING)
 						}
@@ -307,7 +307,7 @@ public class PistolRenderer extends IIUpgradableItemRendererAMT<ItemIIPistol> im
 	}
 
 	@Override
-	public boolean renderCrosshair(ItemStack stack, EnumHand hand)
+	public boolean shouldCancelCrosshair(ItemStack stack, EnumHand hand)
 	{
 		if(item.isScoped(stack))
 			return false;
