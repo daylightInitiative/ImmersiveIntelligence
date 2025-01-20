@@ -246,10 +246,10 @@ public class PistolRenderer extends IIUpgradableItemRendererAMT<ItemIIPistol> im
 	{
 		this.model = AMTModelCacheBuilder.startItemModel()
 				.withModel(model)
-				//.withModel(ResLoc.of(this.directoryRes, "upgrades/common.obj"))
+				.withModel(ResLoc.of(this.directoryRes, "upgrades/common.obj"))
 				.withModels(listUpgradeModels())
 				.withHeader(header)
-				//.withHeader(ResLoc.of(this.directoryRes, "pistol_upgrades.obj.amt"))
+				.withHeader(ResLoc.of(this.directoryRes, "pistol_upgrades.obj.amt"))
 				.withModelProvider(
 						(stack, combinedHeader) -> new AMT[]{
 								//Main Model

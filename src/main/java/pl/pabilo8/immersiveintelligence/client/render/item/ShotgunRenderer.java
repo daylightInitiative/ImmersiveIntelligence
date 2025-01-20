@@ -26,7 +26,6 @@ import pl.pabilo8.immersiveintelligence.client.util.amt.AMTBullet.BulletState;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Weapons.AssaultRifle;
 import pl.pabilo8.immersiveintelligence.common.IIContent;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIGunBase;
-import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIRifle;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIShotgun;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ItemIIWeaponUpgrade.WeaponUpgrade;
 import pl.pabilo8.immersiveintelligence.common.item.weapons.ammohandler.AmmoHandler;
@@ -45,7 +44,7 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 	private MTLTextureRemapper skinRemapper;
 	private AMTCrossVariantReference<AMTBullet> bullet, casing;
 
-	private IIAnimationCachedMap loadBullet, handAngle, handVisibility, offhandVisibility, shellEject, shellLoadStartEnd, fire;
+	private IIAnimationCachedMap loadBullet, handAngle, handVisibility, offhandVisibility, shellEject, shellLoadStartEnd, fire, fireSemiAutomatic, fireManual;
 	private float swingProgress = 0;
 
 	public ShotgunRenderer()
@@ -138,7 +137,7 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 			{
 				//gun "push" towards player
 				float recoil = Math.min(
-						(nbt.getFloat(ItemIIRifle.RECOIL_V)+nbt.getFloat(ItemIIRifle.RECOIL_H))
+						(nbt.getFloat(ItemIIShotgun.RECOIL_V)+nbt.getFloat(ItemIIShotgun.RECOIL_H))
 								/(AssaultRifle.maxRecoilHorizontal+AssaultRifle.maxRecoilVertical),
 						1f);
 
@@ -167,11 +166,22 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 			handAngle.apply(preciseAim);
 		}
 
+		//(semiAuto?fireSemiAutomatic: fireManual).apply(gui?0: (1f-((firing-partialTicks)/(item.getFireDelay(stack, nbt)))));
 		(fire).apply(gui?0: (1f-((firing-partialTicks)/(item.getFireDelay(stack, nbt)))));
 
 		float v = IIAnimationUtils.getAnimationProgress(
 				reloading,
 				(float)item.getReloadTime(stack, ItemStack.EMPTY, EasyNBT.wrapNBT(item.getUpgrades(stack))),
+				reloading > 0,
+				false,
+				1,
+				0,
+				partialTicks
+		);
+
+		float v1 = IIAnimationUtils.getAnimationProgress(
+				0f,
+				0.48f,
 				reloading > 0,
 				false,
 				1,
@@ -186,13 +196,12 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 
 		if(reloading > 0)
 		{
-			shellLoadStartEnd.apply(v);
 			if(!semiAuto)
 			{
 				this.bullet.get().withStack(nbt.getItemStack("found"), BulletState.BULLET_UNUSED);
 				loadBullet.apply(v);
 			}
-			shellLoadStartEnd.apply(v);
+			shellLoadStartEnd.apply(v1);
 		}
 		else if(handRender)
 		{
@@ -226,13 +235,13 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 						(stack, combinedHeader) -> new AMT[]{
 								new AMTBullet("bullet", combinedHeader, AmmoRegistry.getModel(IIContent.itemAmmoShotgun))
 										.withState(BulletState.BULLET_UNUSED)
-										.withProperties(IIContent.ammoCoreSteel, CoreType.BIRDSHOT, -1),
+										.withProperties(IIContent.ammoCoreSteel, CoreType.PIERCING, -1),
 								new AMTBullet("casing_fired", combinedHeader, AmmoRegistry.getModel(IIContent.itemAmmoShotgun))
 										.withState(BulletState.CASING),
 								new AMTParticle("muzzle_flash1", combinedHeader)
 										.setParticle(IIParticles.PARTICLE_GUNFIRE),
-								new AMTHand("hand", combinedHeader, EnumHand.OFF_HAND),
-								new AMTHand("hand_right", combinedHeader, EnumHand.MAIN_HAND)
+								new AMTHand("hand_off", combinedHeader, EnumHand.OFF_HAND),
+								new AMTHand("hand_main", combinedHeader, EnumHand.MAIN_HAND)
 						}
 				)
 				.withTextureProvider(
@@ -259,6 +268,8 @@ public class ShotgunRenderer extends IIUpgradableItemRendererAMT<ItemIIShotgun> 
 		loadUpgrades(model, ResLoc.of(animationRes, "upgrades/"));
 
 		fire = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "fire"));
+		fireManual = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "fire_bolt_action"));
+		fireSemiAutomatic = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "fire_semiauto"));
 		shellLoadStartEnd = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "shell_load_start_end"));
 		shellEject = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "shell_eject"));
 		loadBullet = IIAnimationCachedMap.create(this.model, ResLoc.of(animationRes, "shell_load"));
