@@ -3,29 +3,37 @@
   "defaults": {
     "transform": "forge:default-block",
     "textures": {
-      "all": "immersiveintelligence:blocks/concrete/volksbeton"
+      "top": "immersiveintelligence:blocks/concrete/volksbeton",
+      "bottom": "immersiveintelligence:blocks/concrete/volksbeton",
+      "side": "immersiveintelligence:blocks/concrete/volksbeton"
     },
-    "model": "cube_all"
+    "model": "immersiveengineering:ie_pillar"
   },
   "variants": {
     "inventory,type=concrete_bricks": [
       {
         "textures": {
-          "all": "immersiveintelligence:blocks/concrete/volksbeton"
+          "top": "immersiveintelligence:blocks/concrete/volksbeton",
+          "bottom": "immersiveintelligence:blocks/concrete/volksbeton",
+          "side": "immersiveintelligence:blocks/concrete/volksbeton"
         }
       }
     ],
     "inventory,type=sturdy_concrete_bricks": [
       {
         "textures": {
-          "all": "immersiveintelligence:blocks/concrete/panzerbeton"
+          "top": "immersiveintelligence:blocks/concrete/uberbeton_top",
+          "bottom": "immersiveintelligence:blocks/concrete/uberbeton_top",
+          "side": "immersiveintelligence:blocks/concrete/uberbeton"
         }
       }
     ],
     "inventory,type=uberconcrete": [
       {
         "textures": {
-          "all": "immersiveintelligence:blocks/concrete/uberbeton"
+          "top": "immersiveintelligence:blocks/concrete/panzerbeton_top",
+          "bottom": "immersiveintelligence:blocks/concrete/panzerbeton_top",
+          "side": "immersiveintelligence:blocks/concrete/panzerbeton"
         }
       }
     ],
@@ -37,12 +45,16 @@
       },
       "sturdy_concrete_bricks": {
         "textures": {
-          "all": "immersiveintelligence:blocks/concrete/panzerbeton"
+          "top": "immersiveintelligence:blocks/concrete/uberbeton_top",
+          "bottom": "immersiveintelligence:blocks/concrete/uberbeton_top",
+          "side": "immersiveintelligence:blocks/concrete/uberbeton"
         }
       },
       "uberconcrete": {
         "textures": {
-          "all": "immersiveintelligence:blocks/concrete/uberbeton"
+          "top": "immersiveintelligence:blocks/concrete/panzerbeton_top",
+          "bottom": "immersiveintelligence:blocks/concrete/panzerbeton_top",
+          "side": "immersiveintelligence:blocks/concrete/panzerbeton"
         }
       }
     }
