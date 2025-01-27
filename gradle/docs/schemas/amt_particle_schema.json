@@ -14,8 +14,12 @@
         "type": "string"
       }
     },
-    "life_time": {
-      "description": "Life time of this particle in ticks",
+    "max_lifetime": {
+      "description": "Maximum life time of this particle in ticks",
+      "type": "integer"
+    },
+    "lifetime": {
+      "description": "Starting life time of this particle in ticks",
       "type": "integer"
     },
     "draw_stage": {
@@ -56,7 +60,20 @@
             "type": "integer"
           },
           "generator": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "same",
+              "rand_xz",
+              "circle_xz",
+              "cone_xz",
+              "cone_xy",
+              "cone_zy",
+              "sphere",
+              "square",
+              "star",
+              "orb",
+              "cube"
+            ]
           },
           "type": {
             "type": "string"
@@ -64,20 +81,28 @@
           "size": {
             "type": "number"
           },
-          "count": {
+          "amount": {
             "type": "integer",
             "minimum": 0
           },
-          "min_count": {
+          "min_amount": {
             "type": "integer",
             "minimum": 0
           },
-          "max_count": {
+          "max_amount": {
             "type": "integer",
             "minimum": 0
           }
         },
-        "required": ["time", "generator", "distance", "min_amount", "max_amount", "type"]
+        "required": ["time", "generator", "distance", "type"],
+        "oneOf": [
+          {
+            "required": ["amount"]
+          },
+          {
+            "required": ["min_amount", "max_amount"]
+          }
+        ]
       }
     },
     "chained": {
@@ -85,5 +110,5 @@
       "description": "Particles spawned after death of this one"
     }
   },
-  "required": ["type", "life_time", "draw_stage"]
+  "required": ["type", "max_lifetime", "draw_stage"]
 }

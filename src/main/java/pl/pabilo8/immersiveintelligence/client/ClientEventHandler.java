@@ -1448,9 +1448,22 @@ public class ClientEventHandler implements ISelectiveResourceReloadListener
 	/**
 	 * @param pos      position of the explosion / screenshake source
 	 * @param strength strength of the shake
+	 * @param duration duration of the shake in ticks
 	 */
 	public static void addScreenshakeSource(Vec3d pos, float strength, float duration)
 	{
 		SCREEN_SHAKE_EFFECTS.add(new ScreenShake(strength, duration, pos));
 	}
+
+	/**
+	 * @param pos      position of the explosion / screenshake source
+	 * @param strength strength of the shake
+	 * @param duration duration of the shake in ticks
+	 */
+	public static void addScreenshakeSource(Vec3d pos, float strength, float duration, float delay)
+	{
+		SCREEN_SHAKE_EFFECTS.add(new ScreenShake(strength, duration, delay, pos));
+	}
+
+
 }

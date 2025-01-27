@@ -7,6 +7,7 @@ import net.minecraft.util.math.Vec3d;
 /**
  * @author Pabilo8
  * @ii-approved 0.3.1
+ * @updated 29.12.2024
  * @since 03.04.2024
  */
 public class ScreenShake implements Comparable<ScreenShake>
@@ -21,11 +22,34 @@ public class ScreenShake implements Comparable<ScreenShake>
 	 * The duration of the screen shake in ticks.
 	 */
 	private double duration;
+	/**
+	 * The delay of the screen shake in ticks.
+	 */
+	private double delay;
 
+	/**
+	 * Creates a new screen shake effect.
+	 *
+	 * @param strength the strength of the screen shake
+	 * @param duration the duration of the screen shake in ticks
+	 */
 	public ScreenShake(float strength, float duration, Vec3d pos)
+	{
+		this(strength, duration, 0, pos);
+	}
+
+	/**
+	 * Creates a new screen shake effect.
+	 *
+	 * @param strength the strength of the screen shake
+	 * @param duration the duration of the screen shake in ticks
+	 * @param delay    the delay of the screen shake in ticks
+	 */
+	public ScreenShake(float strength, float duration, float delay, Vec3d pos)
 	{
 		this.strength = strength*MathHelper.clamp(MathHelper.log2((int)pos.distanceTo(ClientUtils.mc().player.getPositionVector())*2), 0, 1.05);
 		this.duration = duration;
+		this.delay = delay;
 	}
 
 	/**
@@ -36,6 +60,12 @@ public class ScreenShake implements Comparable<ScreenShake>
 	 */
 	public boolean tick(double partialTicks)
 	{
+		if(delay > 0)
+		{
+			delay -= partialTicks;
+			return false;
+		}
+
 		duration -= partialTicks;
 		return duration <= 0;
 	}
@@ -43,7 +73,9 @@ public class ScreenShake implements Comparable<ScreenShake>
 	@Override
 	public int compareTo(ScreenShake o)
 	{
-		return Double.compare(o.strength, strength);
+		if((int)delay==(int)o.delay)
+			return Double.compare(o.strength, strength); //Pick the one with higher strength
+		return Double.compare(delay, o.delay); //Pick the one with lower delay
 	}
 
 	/**
@@ -51,6 +83,6 @@ public class ScreenShake implements Comparable<ScreenShake>
 	 */
 	public double getStrength()
 	{
-		return strength;
+		return delay > 0?0: strength;
 	}
 }

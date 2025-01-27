@@ -9,10 +9,12 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.IIParticleProperties;
+import pl.pabilo8.immersiveintelligence.client.fx.particles.AbstractParticle;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProperties;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
 import pl.pabilo8.immersiveintelligence.common.util.IIColor;
-import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
+
+import javax.vecmath.Vector2f;
 
 /**
  * @author Pabilo8
@@ -50,8 +52,11 @@ public class EntityFlare extends Entity implements IEntityAdditionalSpawnData
 	@SideOnly(Side.CLIENT)
 	private void spawnParticles()
 	{
-		ParticleRegistry.spawnParticle("flare", getPositionVector().subtract(0, 0.1f, 0), Vec3d.ZERO, Vec3d.ZERO)
-				.setProperties(EasyNBT.newNBT().withColor(IIParticleProperties.COLOR, color));
+		AbstractParticle flare = ParticleRegistry.spawnParticle("flare",
+				getPositionVector().subtract(0, 0.1f, 0),
+				Vec3d.ZERO, new Vector2f(0, 0));
+		if(flare!=null)
+			flare.setProperty(ParticleProperties.COLOR, color);
 	}
 
 	@Override

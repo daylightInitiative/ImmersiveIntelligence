@@ -537,7 +537,9 @@ tile.immersiveintelligence.rubber_leaves.rubber.name=Rubber Tree Leaves
 tile.immersiveintelligence.rubber_sapling.rubber.name=Rubber Tree Sapling
 tile.immersiveintelligence.charred_log.main.name=Charred Log
 
-tile.immersiveintelligence.hmx_dynamite.main.name=HMX Dynamite
+tile.immersiveintelligence.advanced_explosives.rdx.name=RDX Explosives
+tile.immersiveintelligence.advanced_explosives.hmx.name=HMX Explosives
+tile.immersiveintelligence.advanced_explosives.white_phosphorus.name=White Phosphorus Explosives
 
 tile.immersiveintelligence.concrete_decoration.concrete_bricks.name=Concrete Bricks
 tile.immersiveintelligence.concrete_decoration_slab.concrete_bricks.name=Concrete Bricks Slab
@@ -1355,9 +1357,9 @@ info.immersiveintelligence.distance=Distance: %s
 info.immersiveintelligence.distance_unknown=Unknown
 
 info.immersiveintelligence.debugger_mode=Debugger Mode: %s
-info.immersiveintelligence.debugger_mode.0=Transceiver
-info.immersiveintelligence.debugger_mode.1=Transmitter
-info.immersiveintelligence.debugger_mode.2=Receiver
+info.immersiveintelligence.debugger_mode.transceiver=Transceiver
+info.immersiveintelligence.debugger_mode.transmitter=Transmitter
+info.immersiveintelligence.debugger_mode.receiver=Receiver
 
 info.immersiveintelligence.punchtape_reader_mode=Punchtape Reader Mode: %s
 info.immersiveintelligence.punchtape_reader_mode.0=Redstone Indifferent

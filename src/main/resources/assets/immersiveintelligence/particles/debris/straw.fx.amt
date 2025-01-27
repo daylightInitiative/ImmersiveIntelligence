@@ -1,0 +1,12 @@
+{
+  "type": "ParticleModel",
+  "models": ["debris/straw/straw1.obj", "debris/straw/straw2.obj", "debris/straw/straw3.obj"],
+  "max_lifetime": 50,
+  "draw_stage": "custom",
+  "aabb": 0.125,
+  "programs": [
+    "gravity(1.0,0.08)",
+    "dust_transition",
+    "rotation(2,2)"
+  ]
+}

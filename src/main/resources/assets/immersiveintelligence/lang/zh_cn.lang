@@ -1252,9 +1252,9 @@ info.immersiveintelligence.distance=距离: %s
 info.immersiveintelligence.distance_unknown=未知
 
 info.immersiveintelligence.debugger_mode=调试器模式: %s
-info.immersiveintelligence.debugger_mode.0=收发器
-info.immersiveintelligence.debugger_mode.1=发射器
-info.immersiveintelligence.debugger_mode.2=接收器
+info.immersiveintelligence.debugger_mode.transceiver=收发器
+info.immersiveintelligence.debugger_mode.transmitter=发射器
+info.immersiveintelligence.debugger_mode.receiver=接收器
 
 info.immersiveintelligence.punchtape_reader_mode=打孔纸带读取器模式: %s
 info.immersiveintelligence.punchtape_reader_mode.0=红石不敏感
