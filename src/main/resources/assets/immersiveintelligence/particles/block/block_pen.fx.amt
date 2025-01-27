@@ -1,0 +1,9 @@
+{
+  "type": "ParticleModel",
+  "models": ["metalspart_single1"],
+  "life_time": 9,
+  "draw_stage": "custom_smoke_noise_shader",
+  "programs": [
+    "smoke_transition"
+  ]
+}

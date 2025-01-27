@@ -1,14 +1,9 @@
 {
   "type": "ParticleModel",
-  "models": [
-    "debris/plank/plank1.obj", "debris/plank/plank2.obj", "debris/plank/plank3.obj", "debris/plank/plank4.obj"
-  ],
-  "max_lifetime": 50,
-  "draw_stage": "custom",
-  "aabb": 0.125,
+  "models": ["plank1.obj", "plank2.obj", "plank3.obj", "plank4.obj"],
+  "life_time": 80,
+  "draw_stage": "custom_additive",
   "programs": [
-    "gravity(1.0,0.08)",
-    "dust_transition",
-    "rotation(2,2)"
+    "shockwave_transition"
   ]
 }
