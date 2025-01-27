@@ -1,15 +1,9 @@
 {
   "type": "ParticleModel",
-  "models": [
-    "debris/flesh/flesh1.obj", "debris/flesh/flesh2.obj", "debris/flesh/flesh3.obj", "debris/flesh/flesh4.obj",
-    "debris/flesh/flesh5.obj", "debris/flesh/flesh6.obj"
-  ],
-  "max_lifetime": 50,
-  "draw_stage": "custom",
-  "aabb": 0.125,
+  "models": ["flesh1.obj","flesh2.obj","flesh3.obj","flesh4.obj","flesh5.obj","flesh6.obj"],
+  "life_time": 80,
+  "draw_stage": "custom_additive",
   "programs": [
-    "gravity(1.0,0.08)",
-    "dust_transition",
-    "rotation(1,1)"
+    "shockwave_transition"
   ]
 }

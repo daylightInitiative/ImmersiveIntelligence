@@ -1,0 +1,9 @@
+{
+  "type": "ParticleModel",
+  "models": ["branch_leaf1.obj","branch_leaf2.obj","branch_leaf3.obj","branch_leaf4.obj"],
+  "life_time": 80,
+  "draw_stage": "custom_additive",
+  "programs": [
+    "shockwave_transition"
+  ]
+}
