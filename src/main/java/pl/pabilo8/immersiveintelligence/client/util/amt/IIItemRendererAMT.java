@@ -17,12 +17,16 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.model.obj.OBJModel;
 import pl.pabilo8.immersiveintelligence.client.model.IIModelRegistry;
 import pl.pabilo8.immersiveintelligence.client.render.IReloadableModelContainer;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Graphics;
+import pl.pabilo8.immersiveintelligence.common.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.common.util.amt.IIModelHeader;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import static blusunrize.immersiveengineering.client.ClientUtils.mc;
 
@@ -165,5 +169,12 @@ public abstract class IIItemRendererAMT<I extends Item> extends TileEntityItemSt
 	protected final boolean is3rdPerson(TransformType transform)
 	{
 		return transform==TransformType.THIRD_PERSON_RIGHT_HAND||transform==TransformType.THIRD_PERSON_LEFT_HAND;
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ElementType.TYPE})
+	public @interface RegisteredItemRenderer
+	{
+		String name();
 	}
 }

@@ -8,10 +8,11 @@ import org.lwjgl.opengl.GL11;
 import pl.pabilo8.immersiveintelligence.api.ammo.enums.CoreType;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.AmmoCore;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.IAmmoType;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMT;
 import pl.pabilo8.immersiveintelligence.client.util.amt.IIAnimationUtils;
 import pl.pabilo8.immersiveintelligence.common.entity.ammo.types.EntityAmmoMissile;
+import pl.pabilo8.immersiveintelligence.common.util.IIColor;
+import pl.pabilo8.immersiveintelligence.common.util.ResLoc;
 
 /**
  * @author Pabilo8
@@ -27,6 +28,12 @@ public class ModelAmmoMissile<T extends IAmmoType<T, E>, E extends EntityAmmoMis
 		super(ammo, modelLocation);
 	}
 
+	/**
+	 * @param ammo Ammo Type
+	 * @param <T>  Ammo Type
+	 * @param <E>  Ammo Entity
+	 * @return Reloadable AMT model container for a missile
+	 */
 	public static <T extends IAmmoType<T, E>, E extends EntityAmmoMissile> ModelAmmoMissile<T, E> createMissileModel(T ammo)
 	{
 		//Create model
@@ -38,7 +45,7 @@ public class ModelAmmoMissile<T extends IAmmoType<T, E>, E extends EntityAmmoMis
 	}
 
 	@Override
-	public void renderAmmoComplete(boolean used, int paintColour, AmmoCore coreMaterial, CoreType coreType)
+	public void renderAmmoComplete(boolean used, IIColor paintColor, AmmoCore coreMaterial, CoreType coreType)
 	{
 		if(!loaded)
 			return;

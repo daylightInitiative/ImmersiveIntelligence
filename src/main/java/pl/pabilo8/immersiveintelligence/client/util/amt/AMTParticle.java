@@ -7,9 +7,10 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL11;
-import pl.pabilo8.immersiveintelligence.client.fx.builder.ParticleBuilder;
-import pl.pabilo8.immersiveintelligence.client.fx.particles.IIParticle;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.DrawStages;
+import pl.pabilo8.immersiveintelligence.client.fx.factories.ParticleFactory;
+import pl.pabilo8.immersiveintelligence.client.fx.particles.AbstractParticle;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleDrawStages;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProperties;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
 import pl.pabilo8.immersiveintelligence.common.util.amt.IIModelHeader;
 
@@ -23,7 +24,7 @@ import java.util.function.Consumer;
  */
 public class AMTParticle extends AMT
 {
-	private IIParticle particle;
+	private AbstractParticle particle;
 
 	public AMTParticle(String name, Vec3d originPos)
 	{
@@ -38,29 +39,29 @@ public class AMTParticle extends AMT
 	/**
 	 * Sets the displayed particle
 	 *
-	 * @param particleBuilder Builder of type T Particles
+	 * @param particleFactory Builder of type T Particles
 	 * @param <T>             Particle type
 	 * @return this
 	 */
-	public <T extends IIParticle> AMTParticle setParticle(ParticleBuilder<T> particleBuilder)
+	public <T extends AbstractParticle> AMTParticle setParticle(ParticleFactory<T> particleFactory)
 	{
-		return setParticle(particleBuilder, tParticleBuilder -> {
+		return setParticle(particleFactory, tParticleBuilder -> {
 		});
 	}
 
 	/**
 	 * Sets the displayed particle
 	 *
-	 * @param particleBuilder   Builder of type T Particles
+	 * @param particleFactory   Builder of type T Particles
 	 * @param additionalOptions Use to apply additional settings
 	 * @param <T>               Particle type
 	 * @return this
 	 */
-	public <T extends IIParticle> AMTParticle setParticle(ParticleBuilder<T> particleBuilder, Consumer<ParticleBuilder<T>> additionalOptions)
+	public <T extends AbstractParticle> AMTParticle setParticle(ParticleFactory<T> particleFactory, Consumer<ParticleFactory<T>> additionalOptions)
 	{
-		additionalOptions.accept(particleBuilder);
-		this.particle = particleBuilder.buildParticle(Vec3d.ZERO, Vec3d.ZERO, rot);
-		this.particle.enableAMTDrawMode();
+		additionalOptions.accept(particleFactory);
+		this.particle = particleFactory.create(Vec3d.ZERO, Vec3d.ZERO, 0, 0);
+//		this.particle.enableAMTDrawMode();
 		return this;
 	}
 
@@ -72,7 +73,7 @@ public class AMTParticle extends AMT
 	 */
 	public AMTParticle setParticle(String particleName)
 	{
-		return setParticle(ParticleRegistry.getParticleBuilder(particleName));
+		return setParticle(ParticleRegistry.getParticle(particleName));
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public class AMTParticle extends AMT
 			return;
 
 		//Uses the custom property value for age
-		particle.setProgress(property);
+		particle.setProperty(ParticleProperties.PROGRESS, property);
 		GlStateManager.translate(originPos.x, originPos.y, originPos.z);
 
 		//Set default particle drawing conditions
@@ -92,10 +93,19 @@ public class AMTParticle extends AMT
 		GlStateManager.disableCull();
 
 		//Set up BufferBuilder with the particle stage
-		DrawStages drawStage = particle.getDrawStage();
+		ParticleDrawStages drawStage = particle.getDrawStage();
 		drawStage.prepareRender(buf, 0);
 
 		//Render
+		AbstractParticle.interPos = Vec3d.ZERO;
+		particle.preRender(
+				ClientUtils.mc().getRenderPartialTicks(),
+				ActiveRenderInfo.getRotationX(),
+				ActiveRenderInfo.getRotationXZ(),
+				ActiveRenderInfo.getRotationZ(),
+				ActiveRenderInfo.getRotationYZ(),
+				ActiveRenderInfo.getRotationXY()
+		);
 		particle.render(buf,
 				ClientUtils.mc().getRenderPartialTicks(),
 				ActiveRenderInfo.getRotationX(),

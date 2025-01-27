@@ -1,6 +1,8 @@
 package pl.pabilo8.immersiveintelligence.api.data.types;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.math.Vec3d;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 
 import javax.annotation.Nonnull;
 
@@ -8,9 +10,9 @@ import javax.annotation.Nonnull;
  * @author Pabilo8
  * @since 26.08.2022
  */
-public class DataTypeVector implements IDataType
+public class DataTypeVector extends DataType
 {
-	public float x, y, z;
+	public float x = 0, y = 0, z = 0;
 	public boolean integerVector;
 
 	public DataTypeVector(float x, float y, float z)
@@ -19,6 +21,11 @@ public class DataTypeVector implements IDataType
 		this.x = x;
 		this.y = y;
 		this.z = z;
+	}
+
+	public DataTypeVector(Vec3d vector)
+	{
+		this((float)vector.x, (float)vector.y, (float)vector.z);
 	}
 
 	public DataTypeVector(int x, int y, int z)
@@ -32,38 +39,6 @@ public class DataTypeVector implements IDataType
 	public DataTypeVector()
 	{
 		this.integerVector = false;
-		setDefaultValue();
-	}
-
-	@Nonnull
-	@Override
-	public String getName()
-	{
-		return "vector";
-	}
-
-	@Nonnull
-	@Override
-	public String[][] getTypeInfoTable()
-	{
-		return new String[][]{
-				{"ie.manual.entry.def_value", "[0.0, 0.0, 0.0]"},
-				{"ie.manual.entry.min_value", String.valueOf(Float.MIN_VALUE)},
-				{"ie.manual.entry.max_value", String.valueOf(Float.MAX_VALUE)}
-		};
-	}
-
-	@Nonnull
-	@Override
-	public String valueToString()
-	{
-		return String.format("[%s,%s,%s]", x, y, z);
-	}
-
-	@Override
-	public void setDefaultValue()
-	{
-		x = y = z = 0;
 	}
 
 	@Override
@@ -90,12 +65,6 @@ public class DataTypeVector implements IDataType
 	}
 
 	@Override
-	public int getTypeColour()
-	{
-		return 0x9d8900;
-	}
-
-	@Override
 	public boolean equals(Object obj)
 	{
 		if(!(obj instanceof DataTypeVector))
@@ -103,5 +72,11 @@ public class DataTypeVector implements IDataType
 
 		DataTypeVector other = (DataTypeVector)obj;
 		return other.x==x&&other.y==y&&other.z==z;
+	}
+
+	@Override
+	public String toString()
+	{
+		return String.format("[%s,%s,%s]", x, y, z);
 	}
 }

@@ -14,13 +14,12 @@ import pl.pabilo8.immersiveintelligence.api.data.radio.RadioNetwork;
 import pl.pabilo8.immersiveintelligence.common.CommonProxy;
 import pl.pabilo8.immersiveintelligence.common.IILogger;
 import pl.pabilo8.immersiveintelligence.common.IISaveData;
-import pl.pabilo8.immersiveintelligence.common.IISounds;
 import pl.pabilo8.immersiveintelligence.common.commands.ii.CommandII;
 import pl.pabilo8.immersiveintelligence.common.compat.IICompatModule;
 import pl.pabilo8.immersiveintelligence.common.event.IEOverrideEventHandler;
 import pl.pabilo8.immersiveintelligence.common.event.LightEngineerEventHandler;
+import pl.pabilo8.immersiveintelligence.common.util.IIReflectionUtils;
 import pl.pabilo8.immersiveintelligence.common.util.IISkinHandler;
-import pl.pabilo8.immersiveintelligence.common.util.Reflector;
 
 import static pl.pabilo8.immersiveintelligence.ImmersiveIntelligence.MODID;
 import static pl.pabilo8.immersiveintelligence.ImmersiveIntelligence.VERSION;
@@ -61,8 +60,6 @@ public class ImmersiveIntelligence
 		NetworkRegistry.INSTANCE.registerGuiHandler(INSTANCE, proxy);
 		new LightEngineerEventHandler().registerEventHandler();
 		proxy.init();
-
-		IISounds.init();
 	}
 
 	@EventHandler
@@ -71,8 +68,8 @@ public class ImmersiveIntelligence
 		proxy.postInit();
 
 		//Redirecting IE event to our own
-		Reflector.getForgeEventListeners();
-		Reflector.overrideEventHandler(blusunrize.immersiveengineering.common.EventHandler.class, new IEOverrideEventHandler());
+		IIReflectionUtils.getForgeEventListeners();
+		IIReflectionUtils.overrideEventHandler(blusunrize.immersiveengineering.common.EventHandler.class, new IEOverrideEventHandler());
 	}
 
 	@Mod.EventHandler

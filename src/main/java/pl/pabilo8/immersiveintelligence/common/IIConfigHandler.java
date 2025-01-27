@@ -119,9 +119,16 @@ public class IIConfigHandler
 			@Comment({"Max amount of block penetrations that will be rendered. 0 will disable rendering."})
 			public static int maxPenetratedBlocks = 64;
 
+			@Comment({"Furthest distance II explosion effects should be visible at."})
+			public static int explosionMessageDistance = 256;
+
+			@RangeInt(min = 0)
+			@Comment({"Max amount of particles that can exist within the particle system."})
+			public static int maxAllowedParticles = 20000;
+
 			@RangeInt(min = 0)
 			@Comment({"Max amount of particles that will be simulated."})
-			public static int maxSimulatedParticles = 2000;
+			public static int maxSimulatedParticles = 6000;
 
 			@RangeInt(min = 0)
 			@Comment({"Max amount of particles that will be drawn. Should be less or equal to maxSimulatedParticles."})
@@ -692,7 +699,7 @@ public class IIConfigHandler
 				public static int printTime = 90;
 
 				@Comment({"Ink used per character printed (mB)."})
-				public static int printInkUsage = 8;
+				public static int printInkUsage = 2;
 			}
 
 			public static class ChemicalBath

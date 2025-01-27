@@ -140,6 +140,9 @@ public class IIContent
 	public static final MachineUpgrade UPGRADE_EMPLACEMENT_WEAPON_TESLA = EmplacementWeapon.register(EmplacementWeaponTeslaCoil::new);
 	//public static final MachineUpgrade UPGRADE_EMPLACEMENT_WEAPON_MORTAR = EmplacementWeapon.register(EmplacementWeaponMortar::new);
 	//public static final MachineUpgrade UPGRADE_EMPLACEMENT_WEAPON_LIGHT_HOWITZER = EmplacementWeapon.register(EmplacementWeaponLightHowitzer::new);
+	//public static final MachineUpgrade UPGRADE_EMPLACEMENT_WEAPON_LIGHT_ROCKET_LAUNCHER = EmplacementWeapon.register(EmplacementWeaponLightRocketLauncher::new);
+	//public static final MachineUpgrade UPGRADE_EMPLACEMENT_WEAPON_GUIDED_MISSILE_LAUNCHER = EmplacementWeapon.register(EmplacementWeaponGuidedMissileLauncher::new);
+
 
 	public static final MachineUpgrade UPGRADE_EMPLACEMENT_WEAPON_CPDS = EmplacementWeapon.register(EmplacementWeaponCPDS::new);
 
@@ -291,7 +294,7 @@ public class IIContent
 	public static final BlockIISmallCrate blockSmallCrate = new BlockIISmallCrate();
 
 	//explosives
-	public static final BlockIIHMXDynamite blockHMXDynamite = new BlockIIHMXDynamite();
+	public static final BlockIIAdvancedExplosives blockAdvancedExplosives = new BlockIIAdvancedExplosives();
 
 	//ammunition
 	public static final BlockIIMineSign blockMineSign = new BlockIIMineSign();

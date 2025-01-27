@@ -4,6 +4,7 @@ import blusunrize.immersiveengineering.api.Lib;
 import blusunrize.immersiveengineering.api.energy.wires.TileEntityImmersiveConnectable;
 import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.IPlayerInteraction;
 import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.ITileDrop;
+import blusunrize.immersiveengineering.common.util.Utils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -62,6 +63,14 @@ public abstract class TileEntityMineBase extends TileEntityImmersiveConnectable 
 		{
 			heldItem.damageItem(8, player);
 			world.playSound(pos.getX(), pos.getY()+1, pos.getZ(), SoundEvents.ENTITY_SHEEP_SHEAR, SoundCategory.BLOCKS, 1f, 1f, false);
+
+			armed = false;
+
+			// Update the NBT tag to reflect the disarmed state
+			NBTTagCompound nbt = new NBTTagCompound();
+			this.writeCustomNBT(nbt, false);  // This method will update the NBT with the current armed status
+
+			return true;  // Return true to indicate the interaction was successful
 		}
 		return false;
 	}
@@ -71,7 +80,7 @@ public abstract class TileEntityMineBase extends TileEntityImmersiveConnectable 
 	{
 		Item item = stack.getItem();
 		if(item instanceof IAmmoTypeItem)
-			this.mineStack = stack;
+			this.mineStack = Utils.copyStackWithAmount(stack, 1);
 	}
 
 	@Override

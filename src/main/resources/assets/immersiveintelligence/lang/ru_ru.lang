@@ -340,8 +340,8 @@ tile.immersiveintelligence.metal_multiblock.minecart_packer.name=Рельсов�
 tile.immersiveintelligence.metal_multiblock1.redstone_data_interface.name=Интерфейс красный камень-данные
 
 
-desc.immersiveengineering.info.multiblock.II:SkyCrateStation=Фуникулёрная станция
-desc.immersiveengineering.info.multiblock.II:SkyCratePost=Фуникулёрный пост
+desc.immersiveengineering.info.multiblock.II:SkycrateStation=Фуникулёрная станция
+desc.immersiveengineering.info.multiblock.II:SkycratePost=Фуникулёрный пост
 desc.immersiveengineering.info.multiblock.II:Sawmill=Лесопилка
 desc.immersiveengineering.info.multiblock.II:DataInputMachine=Машина ввода данных
 desc.immersiveengineering.info.multiblock.II:ArithmeticLogicMachine=Арифметико-логическая машина
@@ -505,9 +505,9 @@ info.immersiveintelligence.tool_durability=Прочность: %1$s / %2$s
 info.immersiveintelligence.yaw=Рыск: %s
 
 info.immersiveintelligence.debugger_mode=Режим отладки: %s
-info.immersiveintelligence.debugger_mode.0=Трансивер
-info.immersiveintelligence.debugger_mode.1=Передатчик
-info.immersiveintelligence.debugger_mode.2=Приёмник
+info.immersiveintelligence.debugger_mode.transceiver=Трансивер
+info.immersiveintelligence.debugger_mode.transmitter=Передатчик
+info.immersiveintelligence.debugger_mode.receiver=Приёмник
 
 info.immersiveintelligence.tachometer_message.basic=Внутренний: скорость %s об/мин / крутящий момент %s Нм.
 info.immersiveintelligence.tachometer_message.advanced=Внутренний: скорость %s об/мин / крутящий момент %s Нм. Внешнее: скорость %s об/мин / крутящий момент %s Нм.

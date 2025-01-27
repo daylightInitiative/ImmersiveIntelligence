@@ -18,7 +18,7 @@ For example, if in a packet:
 # default_value2
 The same would happen in a packet like:  
 |[data_packet]{data:{a:{Type:"string",Value:"123"}}}|
-Despite that for a human the *text* "123" seems identical to the *number* 123, a data machine sees it very different. A text type [can't be converted] to a number type, thus it too returns a [defaultized Integer], or simply put it: 0.
+Despite that for a human the *text* "123" seems identical to the *number* 123, a data machine sees it very different. A text type [can't be converted] to a number type, thus it too returns a [defaultized Integer], or simply put: 0.
 
 # default_value3
 The only case where such conversion would occur properly, is between two **Compatible Types** - two types storing a similar kind of information: f.e. when converting [Float](#float) to [Integer](#integer)  
@@ -42,17 +42,17 @@ These include [ItemStack](#itemstack), [Array](#array), [FluidStack](#fluidstack
 
 # null
 |[datatype]{type:"%SECTION%",x:52}|
-[Null] is a special data type, which has [no value]. 
+[Null] is a [special] data type, which has [no value].
 It is the default type of an [undefined] variable.
 
 # integer
 |[datatype]{type:"%SECTION%",x:52}|
-[Integer] is a number data type. It can store a [number] without its fractional component. 
+[Integer] is a [number] data type. It can store a [number] without its fractional component.
 It is mainly used in calculations and number comparisons.
 
 # float
 |[datatype]{type:"%SECTION%",x:52}|
-[Float] is a number data type. It can store a [number] along with its [fractional component].
+[Float] is a [number] data type. It can store a [number] along with its [fractional component].
 It is used in high-precision calculations, i.e. computing angles of a long-distance ballistic trajectory.
 
 # string

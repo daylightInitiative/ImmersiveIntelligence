@@ -6,29 +6,24 @@ import pl.pabilo8.immersiveintelligence.api.data.operations.DataOperation;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeExpression;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeInteger;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeString;
-import pl.pabilo8.immersiveintelligence.api.data.types.IDataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author Pabilo8
  * @since 05-07-2019
  */
+@DataOperation.DataOperationMeta(name = "string_substring", allowedTypes = {DataTypeString.class, DataTypeInteger.class}, params = {"text", "index"}, expectedResult = DataTypeString.class)
 public class DataOperationStringSubstring extends DataOperation
 {
-	public DataOperationStringSubstring()
-	{
-		//Gets a substring (given integer to the end)
-		name = "string_substring";
-		allowedTypes = new Class[]{DataTypeString.class, DataTypeInteger.class};
-		params = new String[]{"text","from_index"};
-		expectedResult = DataTypeString.class;
-	}
-
+	@Nonnull
 	@Override
-	public IDataType execute(DataPacket packet, DataTypeExpression data)
+	public DataType execute(DataPacket packet, DataTypeExpression data)
 	{
 		DataTypeString t1 = packet.getVarInType(DataTypeString.class, data.getArgument(0));
 		DataTypeInteger t2 = packet.getVarInType(DataTypeInteger.class, data.getArgument(1));
 
-		return new DataTypeString(t1.valueToString().substring(MathHelper.clamp(t2.value,0,t1.value.length())));
+		return new DataTypeString(t1.toString().substring(MathHelper.clamp(t2.value, 0, t1.value.length())));
 	}
 }

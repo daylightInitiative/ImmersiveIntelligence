@@ -1,12 +1,17 @@
 package pl.pabilo8.immersiveintelligence.api.data.operations.cryptographer;
 
+import pl.pabilo8.immersiveintelligence.common.IILogger;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * @author GabrielV
- * @version 1.0.0
  * This class is used for encrypting data using XOR Cipher.
+ *
+ * @author GabrielV
+ * @author Avalon
+ * @ii-approved 0.3.1
+ * @since 18.09.2024
  */
 public class Cryptographer
 {
@@ -58,8 +63,16 @@ public class Cryptographer
 	 */
 	public static byte[] decrypt(byte[] data, byte[] password)
 	{
-		byte[] decoded = Base64.getDecoder().decode(data);
-		return processData(decoded, password);
+		try
+		{
+			byte[] decoded = Base64.getDecoder().decode(data);
+			return processData(decoded, password);
+		} catch(IllegalArgumentException e)
+		{
+			//Log error and return original data packet if decryption fails
+			IILogger.warn("Failed to decrypt data: "+e);
+			return data; // Return original data without modifying
+		}
 	}
 
 	/**
@@ -83,7 +96,14 @@ public class Cryptographer
 	 */
 	public static String decryptToString(byte[] data, byte[] password)
 	{
-		return new String(decrypt(data, password));
+		try
+		{
+			return new String(decrypt(data, password), StandardCharsets.UTF_8);
+		} catch(Exception e)
+		{
+			IILogger.warn("Failed to decrypt data to string: "+e);
+			return new String(data, StandardCharsets.UTF_8); // Return original data
+		}
 	}
 
 	/**

@@ -7,7 +7,6 @@ import blusunrize.immersiveengineering.api.energy.wires.IImmersiveConnectable;
 import blusunrize.immersiveengineering.api.energy.wires.ImmersiveNetHandler;
 import blusunrize.immersiveengineering.api.energy.wires.ImmersiveNetHandler.Connection;
 import blusunrize.immersiveengineering.common.IEContent;
-import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.IDirectionalTile;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityMultiblockMetal;
 import blusunrize.immersiveengineering.common.util.Utils;
 import com.google.common.collect.ImmutableSet;
@@ -43,10 +42,9 @@ import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import pl.pabilo8.immersiveintelligence.ImmersiveIntelligence;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.IDataConnector;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeItemStack;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeString;
-import pl.pabilo8.immersiveintelligence.api.data.types.IDataType;
+import pl.pabilo8.immersiveintelligence.api.data.types.generic.DataType;
 import pl.pabilo8.immersiveintelligence.common.compat.BaublesHelper;
 import pl.pabilo8.immersiveintelligence.common.compat.IICompatModule;
 import pl.pabilo8.immersiveintelligence.common.util.ISerializableEnum;
@@ -100,35 +98,6 @@ public class IIUtils
 			ret.add(c);
 		}
 		return ret;
-	}
-
-	@Nullable
-	public static IDataConnector findConnectorFacing(BlockPos pos, World world, EnumFacing facing)
-	{
-		BlockPos newpos = pos.offset(facing);
-		if(!world.isBlockLoaded(newpos))
-			return null;
-		TileEntity te = world.getTileEntity(newpos);
-
-		if(te instanceof IDataConnector&&te instanceof IDirectionalTile)
-		{
-			IDirectionalTile t = (IDirectionalTile)te;
-			if(t.getFacing()==facing.getOpposite())
-				return (IDataConnector)te;
-		}
-		return null;
-	}
-
-	@Nullable
-	public static IDataConnector findConnectorAround(BlockPos pos, World world)
-	{
-		for(EnumFacing facing : EnumFacing.HORIZONTALS)
-		{
-			IDataConnector conn = findConnectorFacing(pos, world, facing);
-			if(conn!=null)
-				return conn;
-		}
-		return null;
 	}
 
 	public static <T extends IFluidTank & IFluidHandler> boolean handleBucketTankInteraction(T tank, NonNullList<ItemStack> inventory, int bucketInputSlot, int bucketOutputSlot, boolean fillBucket, Predicate<FluidStack> filter)
@@ -379,17 +348,17 @@ public class IIUtils
 		return String.format("%s/%s IF", min, max);
 	}
 
-	public static IngredientStack ingredientFromData(IDataType dataType)
+	public static IngredientStack ingredientFromData(DataType dataType)
 	{
 		if(dataType instanceof DataTypeItemStack)
 			return new IngredientStack((((DataTypeItemStack)dataType).value.copy()));
 		else if(dataType instanceof DataTypeString)
-			return new IngredientStack(dataType.valueToString());
+			return new IngredientStack(dataType.toString());
 		else
 			return new IngredientStack("*");
 	}
 
-	public static DataPacket getSimpleCallbackMessage(DataPacket packet, String parameter, IDataType value)
+	public static DataPacket getSimpleCallbackMessage(DataPacket packet, String parameter, DataType value)
 	{
 		packet.setVariable('c', new DataTypeString(parameter));
 		packet.setVariable('g', value);
@@ -471,7 +440,8 @@ public class IIUtils
 	@Nullable
 	public static <T extends Annotation> T getAnnotation(Class<T> annotationClass, Object o)
 	{
-		if(o.getClass().isAnnotationPresent(annotationClass)) return o.getClass().getAnnotation(annotationClass);
+		if(o.getClass().isAnnotationPresent(annotationClass))
+			return o.getClass().getAnnotation(annotationClass);
 		return null;
 	}
 

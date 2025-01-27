@@ -41,10 +41,8 @@ import pl.pabilo8.immersiveintelligence.client.util.carversound.MovingSoundMotor
 import pl.pabilo8.immersiveintelligence.client.util.tmt.ModelRendererTurbo;
 import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Vehicles.Motorbike;
 import pl.pabilo8.immersiveintelligence.common.IISounds;
-import pl.pabilo8.immersiveintelligence.common.IIUtils;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
 import pl.pabilo8.immersiveintelligence.common.network.messages.MessageEntityNBTSync;
-import pl.pabilo8.immersiveintelligence.common.network.messages.MessageParticleEffect;
 import pl.pabilo8.immersiveintelligence.common.util.IIDamageSources;
 import pl.pabilo8.immersiveintelligence.common.util.IIMath;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
@@ -490,7 +488,7 @@ public class EntityMotorbike extends Entity implements IVehicleMultiPart, IEntit
 
 
 		if(world.isRemote)
-			IIEntityUtils.setEntityVelocity(this, partWheelFront.motionX, partWheelFront.motionY, partWheelFront.motionZ);
+			IIEntityUtils.setEntityMotion(this, partWheelFront.motionX, partWheelFront.motionY, partWheelFront.motionZ);
 
 
 		if(!world.isRemote&&speed > 1f)
@@ -593,7 +591,7 @@ public class EntityMotorbike extends Entity implements IVehicleMultiPart, IEntit
 		{
 			if(hasFuel())
 				world.newExplosion(null, posX, posY, posZ, tank.getFluidAmount()/12000f*4, false, false);
-			IIPacketHandler.sendToClient(new MessageParticleEffect("motorbike_explosion", world, new Vec3d(this.getEntityId(), 0, 0)));
+			//TODO: 23.12.2024 explosion
 			setDead();
 		}
 		else

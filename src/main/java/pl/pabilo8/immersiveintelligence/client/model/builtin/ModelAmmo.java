@@ -15,7 +15,6 @@ import pl.pabilo8.immersiveintelligence.api.ammo.enums.CoreType;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.AmmoCore;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.IAmmoType;
 import pl.pabilo8.immersiveintelligence.client.render.IReloadableModelContainer;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMT;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMTLocator;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMTQuads;
@@ -24,8 +23,10 @@ import pl.pabilo8.immersiveintelligence.common.entity.ammo.EntityAmmoBase;
 import pl.pabilo8.immersiveintelligence.common.entity.ammo.types.EntityAmmoMine;
 import pl.pabilo8.immersiveintelligence.common.util.IIColor;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
+import pl.pabilo8.immersiveintelligence.common.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.common.util.amt.IIModelHeader;
 
+import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.HashMap;
 
@@ -56,7 +57,7 @@ public class ModelAmmo<T extends IAmmoType<T, E>, E extends EntityAmmoBase<? sup
 	/**
 	 * Core models, baked and assigned by material
 	 */
-	protected final HashMap<Integer, AMT> modelPaint = new HashMap<>();
+	protected final HashMap<IIColor, AMT> modelPaint = new HashMap<>();
 
 
 	protected ModelAmmo(T ammo, ResLoc modelLocation)
@@ -67,6 +68,12 @@ public class ModelAmmo<T extends IAmmoType<T, E>, E extends EntityAmmoBase<? sup
 
 	//--- Model Creation Methods ---//
 
+	/**
+	 * @param ammo Ammo Type
+	 * @param <T>  Ammo Type
+	 * @param <E>  Ammo Entity
+	 * @return Reloadable AMT model container for mine or explosive
+	 */
 	public static <T extends IAmmoType<T, E>, E extends EntityAmmoMine> ModelAmmo<T, E> createExplosivesModel(T ammo)
 	{
 		//Create model
@@ -79,11 +86,11 @@ public class ModelAmmo<T extends IAmmoType<T, E>, E extends EntityAmmoBase<? sup
 	//--- Rendering Methods ---//
 
 	/**
-	 * @param progress    how much is the casing filled with gunpowder
-	 * @param paintColour in rgbInt format, -1 if unpainted
+	 * @param progress   how much is the casing filled with gunpowder
+	 * @param paintColor in rgbInt format, -1 if unpainted
 	 */
 	@Override
-	public void renderCasing(float progress, int paintColour)
+	public void renderCasing(float progress, @Nullable IIColor paintColor)
 	{
 		if(!loaded)
 			return;
@@ -109,11 +116,11 @@ public class ModelAmmo<T extends IAmmoType<T, E>, E extends EntityAmmoBase<? sup
 
 	/**
 	 * @param used         if the ammo was fired already
-	 * @param paintColour  in rgbInt format
+	 * @param paintColor   in rgbInt format
 	 * @param coreMaterial of the ammo, see {@link AmmoCore}
 	 * @param coreType     of the ammo, see {@link IAmmoType#getAllowedCoreTypes()}
 	 */
-	public void renderAmmoComplete(boolean used, int paintColour, AmmoCore coreMaterial, CoreType coreType)
+	public void renderAmmoComplete(boolean used, IIColor paintColor, AmmoCore coreMaterial, CoreType coreType)
 	{
 		if(!loaded)
 			return;
@@ -123,8 +130,8 @@ public class ModelAmmo<T extends IAmmoType<T, E>, E extends EntityAmmoBase<? sup
 		if(!used)
 		{
 			modelCasingSimple.render(tes, buf);
-			if(paintColour!=-1)
-				modelPaint.computeIfAbsent(paintColour, integer -> ((AMTQuads)modelPaintBase).recolor(IIColor.fromPackedRGB(integer))).render(tes, buf);
+			if(paintColor!=null)
+				modelPaint.computeIfAbsent(paintColor, color -> ((AMTQuads)modelPaintBase).recolor(color)).render(tes, buf);
 		}
 		modelCoreSimple.get(coreType).get(coreMaterial).render(tes, buf);
 	}

@@ -4,14 +4,17 @@ import blusunrize.immersiveengineering.api.DimensionBlockPos;
 import blusunrize.immersiveengineering.api.crafting.IngredientStack;
 import blusunrize.immersiveengineering.common.util.ItemNBTHelper;
 import com.google.gson.JsonObject;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import pl.pabilo8.immersiveintelligence.common.IILogger;
 import pl.pabilo8.immersiveintelligence.common.IIUtils;
@@ -19,6 +22,8 @@ import pl.pabilo8.immersiveintelligence.common.util.IIColor;
 import pl.pabilo8.immersiveintelligence.common.util.ISerializableEnum;
 
 import javax.annotation.Nullable;
+import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -38,9 +43,9 @@ public class EasyNBT extends Constants.NBT
 {
 	private final NBTTagCompound wrapped;
 
-	private EasyNBT(NBTTagCompound wrapped)
+	private EasyNBT(@Nullable NBTTagCompound wrapped)
 	{
-		this.wrapped = wrapped;
+		this.wrapped = wrapped==null?new NBTTagCompound(): wrapped;
 	}
 
 	//--- Wrapping ---//
@@ -68,6 +73,11 @@ public class EasyNBT extends Constants.NBT
 	public static EasyNBT parseEasyNBT(String format, Object... arguments)
 	{
 		return new EasyNBT(parseNBT(format, arguments));
+	}
+
+	public static EasyNBT wrapNBT(ByteBuf buffer)
+	{
+		return new EasyNBT(ByteBufUtils.readTag(buffer));
 	}
 
 	//--- With ---//
@@ -292,9 +302,39 @@ public class EasyNBT extends Constants.NBT
 	 *
 	 * @param key name of this tag
 	 */
+	public EasyNBT withVec3d(String key, Vector3f value)
+	{
+		return withList(key, value.getX(), value.getY(), value.getZ());
+	}
+
+	/**
+	 * Appends a Vec3d
+	 *
+	 * @param key name of this tag
+	 */
 	public EasyNBT withVec3d(String key, double x, double y, double z)
 	{
 		return withList(key, x, y, z);
+	}
+
+	/**
+	 * Appends a Vec2d
+	 *
+	 * @param key name of this tag
+	 */
+	public EasyNBT withVec2d(String key, double x, double y)
+	{
+		return withList(key, x, y);
+	}
+
+	/**
+	 * Appends a Vec2d
+	 *
+	 * @param key name of this tag
+	 */
+	public EasyNBT withVec2d(String key, Vector2f value)
+	{
+		return withList(key, value.x, value.y);
 	}
 
 	/**
@@ -327,12 +367,25 @@ public class EasyNBT extends Constants.NBT
 		return withTag(key, value.writeToNBT(new NBTTagCompound()));
 	}
 
-	//with color
+	/**
+	 * Appends a Color
+	 *
+	 * @param key name of this tag
+	 */
 	public EasyNBT withColor(String key, IIColor color)
 	{
 		return withInt(key, color.getPackedARGB());
 	}
 
+	/**
+	 * Appends an AxisAlignedBB
+	 *
+	 * @param key name of this tag
+	 */
+	public EasyNBT withAxisAlignedBB(String key, AxisAlignedBB value)
+	{
+		return withList(key, value.minX, value.minY, value.minZ, value.maxX, value.maxY, value.maxZ);
+	}
 
 	/**
 	 * Appends any value extending {@link NBTBase}, as well as common types such as int, double, String, etc.
@@ -350,6 +403,8 @@ public class EasyNBT extends Constants.NBT
 
 		if(value instanceof Integer)
 			return withInt(name, (Integer)value);
+		if(value instanceof Byte)
+			return withInt(name, (Byte)value);
 		if(value instanceof Float)
 			return withFloat(name, (Float)value);
 		if(value instanceof Double)
@@ -705,6 +760,55 @@ public class EasyNBT extends Constants.NBT
 	}
 
 	/**
+	 * Gets a Vector3f
+	 *
+	 * @param key name of this tag
+	 */
+	public Vector3f getVector3f(String key)
+	{
+		NBTTagList pos = getList(key, TAG_DOUBLE);
+
+		if(pos.tagCount() > 2)
+		{
+			NBTTagDouble x = (NBTTagDouble)pos.get(0);
+			NBTTagDouble y = (NBTTagDouble)pos.get(1);
+			NBTTagDouble z = (NBTTagDouble)pos.get(2);
+
+			return new Vector3f((float)x.getDouble(), (float)y.getDouble(), (float)z.getDouble());
+		}
+
+		//only if key is present
+		if(wrapped.hasKey(key))
+			IILogger.error("Malformed Vec3f tag for \""+key+"\" in"+Arrays.toString(new Throwable().getStackTrace()));
+
+		return new Vector3f();
+	}
+
+	/**
+	 * Gets a Vec2f
+	 *
+	 * @param key name of this tag
+	 */
+	public Vector2f getVector2f(String key)
+	{
+		NBTTagList pos = getList(key, TAG_FLOAT);
+
+		if(pos.tagCount() > 1)
+		{
+			NBTTagFloat x = (NBTTagFloat)pos.get(0);
+			NBTTagFloat y = (NBTTagFloat)pos.get(1);
+
+			return new Vector2f(x.getFloat(), y.getFloat());
+		}
+
+		//only if key is present
+		if(wrapped.hasKey(key))
+			IILogger.error("Malformed Vec2f tag for \""+key+"\" in"+Arrays.toString(new Throwable().getStackTrace()));
+
+		return new Vector2f();
+	}
+
+	/**
 	 * Gets an ItemStack
 	 *
 	 * @param key name of this tag
@@ -747,7 +851,28 @@ public class EasyNBT extends Constants.NBT
 
 	public IIColor getColor(String key)
 	{
-		return IIColor.fromPackedRGBA(getInt(key));
+		return IIColor.fromPackedARGB(getInt(key));
+	}
+
+
+	/**
+	 * Gets an {@link AxisAlignedBB}
+	 *
+	 * @param key name of this tag
+	 */
+	public AxisAlignedBB getAxisAlignedBB(String key)
+	{
+		NBTTagList list = getList(key, TAG_DOUBLE);
+		return list.tagCount() > 5?
+				new AxisAlignedBB(
+						list.getDoubleAt(0),
+						list.getDoubleAt(1),
+						list.getDoubleAt(2),
+						list.getDoubleAt(3),
+						list.getDoubleAt(4),
+						list.getDoubleAt(5)
+				):
+				new AxisAlignedBB(0, 0, 0, 0, 0, 0);
 	}
 
 
@@ -987,6 +1112,12 @@ public class EasyNBT extends Constants.NBT
 
 			else if(element instanceof Integer)
 				list.appendTag(new NBTTagInt(((Integer)element)));
+			else if(element instanceof Long)
+				list.appendTag(new NBTTagLong(((Long)element)));
+			else if(element instanceof Short)
+				list.appendTag(new NBTTagShort(((Short)element)));
+			else if(element instanceof Byte)
+				list.appendTag(new NBTTagByte(((Byte)element)));
 			else if(element instanceof Float)
 				list.appendTag(new NBTTagFloat(((Float)element)));
 			else if(element instanceof Double)
@@ -1018,6 +1149,8 @@ public class EasyNBT extends Constants.NBT
 			else if(element instanceof FluidStack)
 				list.appendTag(((FluidStack)element).writeToNBT(new NBTTagCompound()));
 
+			else if(element instanceof int[])
+				list.appendTag(new NBTTagIntArray(((int[])element)));
 			else if(element instanceof Object[])
 				list.appendTag(listOf(element));
 			else if(element instanceof Collection)
@@ -1031,5 +1164,11 @@ public class EasyNBT extends Constants.NBT
 	public static NBTTagIntArray intArrayOf(int... ints)
 	{
 		return new NBTTagIntArray(ints);
+	}
+
+	public ByteBuf writeToByteBuf(ByteBuf buffer)
+	{
+		ByteBufUtils.writeTag(buffer, wrapped);
+		return buffer;
 	}
 }

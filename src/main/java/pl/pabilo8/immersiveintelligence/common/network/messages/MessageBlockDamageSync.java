@@ -1,7 +1,6 @@
 package pl.pabilo8.immersiveintelligence.common.network.messages;
 
 import blusunrize.immersiveengineering.api.DimensionBlockPos;
-import blusunrize.immersiveengineering.common.util.Utils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
@@ -12,7 +11,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import pl.pabilo8.immersiveintelligence.api.ammo.penetration.DamageBlockPos;
 import pl.pabilo8.immersiveintelligence.api.ammo.utils.PenetrationCache;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
 import pl.pabilo8.immersiveintelligence.common.network.IIMessage;
 
 /**

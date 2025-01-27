@@ -25,8 +25,6 @@ bin/
 .gradle
 custom.gradle
 
-docs/
-
 # Forge
 run/
 hs_err_pid*
@@ -37,4 +35,13 @@ src/main/generated/*
 # System
 *Thumbs.db
 *.ini
-cert/II_CS.jks
+
+# Certs
+cert/*
+
+# Tests
+run_tests/
+
+# Act
+.secret
+custom.gradle.template

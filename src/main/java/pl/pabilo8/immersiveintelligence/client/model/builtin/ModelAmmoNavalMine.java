@@ -6,10 +6,11 @@ import net.minecraft.item.ItemStack;
 import pl.pabilo8.immersiveintelligence.api.ammo.enums.CoreType;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.AmmoCore;
 import pl.pabilo8.immersiveintelligence.api.ammo.parts.IAmmoType;
-import pl.pabilo8.immersiveintelligence.client.util.ResLoc;
 import pl.pabilo8.immersiveintelligence.client.util.amt.AMT;
 import pl.pabilo8.immersiveintelligence.client.util.amt.IIAnimationUtils;
 import pl.pabilo8.immersiveintelligence.common.entity.ammo.types.naval_mine.EntityNavalMine;
+import pl.pabilo8.immersiveintelligence.common.util.IIColor;
+import pl.pabilo8.immersiveintelligence.common.util.ResLoc;
 
 import javax.annotation.Nullable;
 
@@ -22,6 +23,12 @@ public class ModelAmmoNavalMine<T extends IAmmoType<T, E>, E extends EntityNaval
 		super(ammo, modelLocation);
 	}
 
+	/**
+	 * @param ammo Ammo Type
+	 * @param <T>  Ammo Type
+	 * @param <E>  Ammo Entity
+	 * @return Reloadable AMT model container for a naval mine
+	 */
 	public static <T extends IAmmoType<T, E>, E extends EntityNavalMine> ModelAmmoNavalMine<T, E> createNavalMineModel(T ammo)
 	{
 		//Create model
@@ -47,7 +54,7 @@ public class ModelAmmoNavalMine<T extends IAmmoType<T, E>, E extends EntityNaval
 	}
 
 	@Override
-	public void renderAmmoComplete(boolean used, int paintColour, @Nullable AmmoCore coreMaterial, @Nullable CoreType coreType)
+	public void renderAmmoComplete(boolean used, IIColor paintColor, @Nullable AmmoCore coreMaterial, @Nullable CoreType coreType)
 	{
 		if(!loaded)
 			return;

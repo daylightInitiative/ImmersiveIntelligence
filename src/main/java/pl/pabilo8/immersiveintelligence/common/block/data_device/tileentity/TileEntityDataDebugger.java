@@ -9,10 +9,7 @@ import blusunrize.immersiveengineering.api.energy.wires.ImmersiveNetHandler.Conn
 import blusunrize.immersiveengineering.api.energy.wires.TileEntityImmersiveConnectable;
 import blusunrize.immersiveengineering.api.energy.wires.WireType;
 import blusunrize.immersiveengineering.client.models.IOBJModelCallback;
-import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.IActiveState;
-import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.IDirectionalTile;
-import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.IHammerInteraction;
-import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.IUsesBooleanProperty;
+import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.*;
 import blusunrize.immersiveengineering.common.util.chickenbones.Matrix4;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
@@ -22,6 +19,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
@@ -31,12 +29,15 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.model.TRSRTransformation;
 import org.apache.commons.lang3.StringUtils;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
-import pl.pabilo8.immersiveintelligence.api.data.DataWireNetwork;
-import pl.pabilo8.immersiveintelligence.api.data.IDataConnector;
+import pl.pabilo8.immersiveintelligence.api.data.device.DataWireNetwork;
+import pl.pabilo8.immersiveintelligence.api.data.device.IDataConnector;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeString;
 import pl.pabilo8.immersiveintelligence.api.utils.tools.IAdvancedTextOverlay;
+import pl.pabilo8.immersiveintelligence.common.IISounds;
+import pl.pabilo8.immersiveintelligence.common.IIUtils;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
+import pl.pabilo8.immersiveintelligence.common.util.ISerializableEnum;
 import pl.pabilo8.immersiveintelligence.common.wire.IIDataWireType;
 
 import javax.annotation.Nullable;
@@ -46,19 +47,24 @@ import java.util.Optional;
 
 /**
  * @author Pabilo8
+ * @author Avalon
  * @since 11-06-2019
+ * @since 10-10-2024
  */
-public class TileEntityDataDebugger extends TileEntityImmersiveConnectable implements ITickable, IDataConnector, IHammerInteraction, IDirectionalTile, IOBJModelCallback<IBlockState>, IAdvancedTextOverlay, IActiveState
+public class TileEntityDataDebugger extends TileEntityImmersiveConnectable implements ITickable, IDataConnector, IHammerInteraction, IDirectionalTile, IOBJModelCallback<IBlockState>, IAdvancedTextOverlay, IActiveState, IRedstoneOutput
 {
+	private DebuggerMode mode = DebuggerMode.TRANSCEIVER;
+	private EnumFacing facing = EnumFacing.NORTH;
 	private boolean toggle = false;
-	public int mode = 0;
-	EnumFacing facing = EnumFacing.NORTH;
-	//Purely decorational, client only
-	public int setupTime = 25;
-	protected DataWireNetwork wireNetwork = new DataWireNetwork().add(this);
+
+	private DataWireNetwork wireNetwork = new DataWireNetwork().add(this);
 	private boolean refreshWireNetwork = false;
 	private DataPacket lastPacket = null;
 	private String[] packetString = new String[0];
+
+	//Purely decorational, client only
+	public int setupTime = 25;
+	public int outputTime = 0;
 
 	@Override
 	public void update()
@@ -75,18 +81,35 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 			if(setupTime==0)
 				onDataChange();
 		}
-		else if(!world.isRemote&&mode < 2)
+		else if(!world.isRemote)
 		{
-			if(world.isBlockIndirectlyGettingPowered(getPos()) > 0&&!toggle)
+			if(mode.canReceive)
 			{
-				toggle = true;
-				DataPacket pack = new DataPacket();
-				pack.setVariable('a', new DataTypeString("Hello World!"));
-				this.getDataNetwork().sendPacket(pack, this);
+				if(outputTime-1==0)
+				{
+					outputTime = 0;
+					markDirty();
+					IBlockState stateHere = world.getBlockState(pos);
+					markContainingBlockForUpdate(stateHere);
+					markBlockForUpdate(pos.offset(facing), stateHere);
+				}
+				else
+					outputTime = Math.max(outputTime-1, 0);
 			}
-			else if(world.isBlockIndirectlyGettingPowered(getPos())==0&&toggle)
+			if(mode.canTransmit)
 			{
-				toggle = false;
+				if(world.isBlockIndirectlyGettingPowered(getPos()) > 0&&!toggle)
+				{
+					toggle = true;
+					DataPacket pack = new DataPacket();
+					pack.setVariable('a', new DataTypeString("Hello World!"));
+					this.getDataNetwork().sendPacket(pack, this);
+					this.world.playSound(null, pos, IISounds.debuggerBeep, SoundCategory.BLOCKS, 1.0f, 0.0f);
+				}
+				else if(world.isBlockIndirectlyGettingPowered(getPos())==0&&toggle)
+				{
+					toggle = false;
+				}
 			}
 		}
 	}
@@ -95,7 +118,7 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 	@Override
 	public void readCustomNBT(NBTTagCompound nbt, boolean descPacket)
 	{
-		mode = nbt.getInteger("mode");
+		mode = DebuggerMode.values()[nbt.getInteger("mode")];
 		if(nbt.hasKey("noSetup"))
 			setupTime = 0;
 		setFacing(EnumFacing.getFront(nbt.getInteger("facing")));
@@ -111,7 +134,7 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 	@Override
 	public void writeCustomNBT(NBTTagCompound nbt, boolean descPacket)
 	{
-		nbt.setInteger("mode", mode);
+		nbt.setInteger("mode", mode.ordinal());
 		if(setupTime < 25)
 			nbt.setBoolean("noSetup", true);
 		nbt.setInteger("facing", facing.ordinal());
@@ -129,13 +152,10 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 		//gets variables in format l:{Value:0}
 		return minimizeArrays(
 				lastPacket.variables.entrySet().stream()
-						/*map(entry -> String.format("",
-								,*/
-						.map(entry -> String.format("<hexcol=%s:%s> %s = %s",
-								String.format("%06X", entry.getValue().getTypeColour()),
-								entry.getValue().getName(),
+						.map(entry -> String.format("%s %s = %s",
+								entry.getValue().getTypeColor().getHexCol(entry.getValue().getName()),
 								entry.getKey(),
-								entry.getValue().valueToString().replace(
+								entry.getValue().toString().replace(
 												"\n", "\n"+StringUtils.repeat(' ', (entry.getValue().getName().length()+7)))
 										.trim()
 						))
@@ -160,11 +180,9 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 	{
 		if(player.isSneaking())
 		{
-			mode += 1;
-			if(mode > 2)
-				mode = 0;
+			mode = IIUtils.cycleEnum(true, DebuggerMode.class, mode);
 			IIPacketHandler.sendChatTranslation(player, IIReference.INFO_KEY+"debugger_mode",
-					new TextComponentTranslation(IIReference.INFO_KEY+"debugger_mode."+mode)
+					new TextComponentTranslation(IIReference.INFO_KEY+"debugger_mode."+mode.getName())
 			);
 			markDirty();
 			markBlockForUpdate(pos, null);
@@ -244,11 +262,11 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 	@Override
 	public void onPacketReceive(DataPacket packet)
 	{
-		if(this.mode==0||mode==2)
+		if(this.mode.canReceive)
 		{
 			this.lastPacket = packet;
-			/*IIPacketHandler.INSTANCE.sendToAllAround(new MessageChatInfo(new TextComponentString(packet.toString())),
-					IIPacketHandler.targetPointFromTile(this, 8));*/
+			this.outputTime = 20;
+			this.world.playSound(null, pos, IISounds.debuggerBeep, SoundCategory.BLOCKS, 1.0f, 1.0f);
 			markDirty();
 			markBlockForUpdate(this.pos, null);
 		}
@@ -304,7 +322,8 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 	@Override
 	public String[] getOverlayText(EntityPlayer player, RayTraceResult mop)
 	{
-		String s_out = I18n.format(IIReference.INFO_KEY+"debugger_mode", I18n.format(IIReference.INFO_KEY+"debugger_mode."+mode));
+		String s_out = I18n.format(IIReference.INFO_KEY+"debugger_mode",
+				I18n.format(IIReference.INFO_KEY+"debugger_mode."+mode.getName()));
 		if(lastPacket!=null)
 		{
 			ArrayList<String> s = new ArrayList<>(Arrays.asList(this.packetString));
@@ -340,5 +359,32 @@ public class TileEntityDataDebugger extends TileEntityImmersiveConnectable imple
 		mat = mat.translate(.5, 0, .5).rotate(Math.toRadians(25), 0, 1, 0).translate(-.5, 0, -.5);
 		transform = Optional.of(new TRSRTransformation(mat.toMatrix4f()));
 		return transform;
+	}
+
+	@Override
+	public int getStrongRSOutput(IBlockState state, EnumFacing side)
+	{
+		return mode.canReceive&&outputTime > 0?15: 0;
+	}
+
+	@Override
+	public boolean canConnectRedstone(IBlockState state, EnumFacing side)
+	{
+		return false;
+	}
+
+	public enum DebuggerMode implements ISerializableEnum
+	{
+		TRANSCEIVER(true, true),
+		TRANSMITTER(false, true),
+		RECEIVER(true, false);
+
+		final boolean canReceive, canTransmit;
+
+		DebuggerMode(boolean canReceive, boolean canTransmit)
+		{
+			this.canReceive = canReceive;
+			this.canTransmit = canTransmit;
+		}
 	}
 }
