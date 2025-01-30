@@ -41,11 +41,12 @@ Using the [Engineer's Hammer](introduction#introductionHammer) on it will change
 # debugger
 |[crafting]{source:"%SECTION%"}|  
 The **Data Debugger** is a special type of [Data Relay](#relay), that captures, stores and displays the **Packet** flowing through it.
-It operates in 3 modes, that can be switched between by using a [Hammer](tools), with default one being the [Transceiver Mode]. 
-
+It operates in 3 [modes], that can be switched between by sneak-using a [Hammer](tools), with default one being the [Transceiver Mode].
 # debugger2
-In the [Transmitter] mode, the **Debugger** will transmit a test package when provided a redstone signal. In the [Receiver] mode, the  [Transceiver] combines functions of both.
-
+In the [Transmitter] mode, the **Debugger** will transmit a test package when provided a redstone signal.
+|[data_packet]{data:{a:{Type:"string",Value:"Hello, World!"}}}|
+<br>In the [Receiver] mode, the device will receive and store any data packets going through it, and emit a [10 tick long] redstone pulse on reception.<br>
+The [Transceiver] mode combines functions of both.
 # wireless1
 **Wireless** data transfer is an extension over the **Wired** one. 
 It uses radio-capable devices, such as the [Radio Station](radio_station), [Radio Backpack](radio_station) and [Radio Explosives](radio_station).  

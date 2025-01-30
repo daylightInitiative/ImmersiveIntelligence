@@ -2,6 +2,7 @@ package pl.pabilo8.immersiveintelligence.common.network.messages;
 
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
 
 /**
  * @author Pabilo8
@@ -18,4 +19,9 @@ public interface IPositionBoundMessage
 	 * @return position tracked by this message's recipients
 	 */
 	Vec3d getPosition();
+
+	default int getPacketDistance()
+	{
+		return IIPacketHandler.DEFAULT_RANGE;
+	}
 }

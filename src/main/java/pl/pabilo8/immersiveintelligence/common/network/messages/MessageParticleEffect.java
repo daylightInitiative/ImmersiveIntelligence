@@ -3,47 +3,48 @@ package pl.pabilo8.immersiveintelligence.common.network.messages;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
+import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleProperties;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
 import pl.pabilo8.immersiveintelligence.common.network.IIMessage;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
-import static pl.pabilo8.immersiveintelligence.client.fx.utils.IIParticleProperties.*;
+import javax.vecmath.Vector2f;
+
 
 /**
- * @author Pabilo8
+ * Tells the client to spawn an II particle effect.
+ *
+ * @author Pabilo8 (pabilo@iiteam.net)
+ * @updated 27.12.2024
+ * @ii-approved 0.3.1
  * @since 20.01.2021
  */
 public class MessageParticleEffect extends IIMessage implements IPositionBoundMessage
 {
 	private String id;
 	private World world;
-	private Vec3d pos, motion, dir;
-	private NBTTagCompound nbt;
+	private Vec3d position, motion;
+	private Vector2f rotation;
+	private EasyNBT nbt;
 
-	public MessageParticleEffect(String id, World world, Vec3d pos)
-	{
-		this(id, world, pos, Vec3d.ZERO);
-	}
-
-	public MessageParticleEffect(String id, World world, Vec3d pos, Vec3d dir)
-	{
-		this(id, world, pos, Vec3d.ZERO, new NBTTagCompound());
-	}
-
-	public MessageParticleEffect(String id, World world, Vec3d pos, Vec3d dir, NBTTagCompound mbt)
+	public MessageParticleEffect(String id, World world, Vec3d position, Vec3d motion, Vector2f rotation, EasyNBT nbt)
 	{
 		this.id = id;
 		this.world = world;
-		this.pos = pos;
-		this.motion = Vec3d.ZERO;
-		this.dir = dir;
-		this.nbt = mbt;
+		this.position = position;
+		this.motion = motion;
+		this.rotation = rotation;
+		this.nbt = nbt;
+	}
+
+	public MessageParticleEffect(String id, World world, Vec3d position, Vec3d motion, float rotationYaw, float rotationPitch, EasyNBT nbt)
+	{
+		this(id, world, position, motion, new Vector2f(rotationYaw, rotationPitch), nbt);
 	}
 
 	public MessageParticleEffect()
@@ -60,45 +61,24 @@ public class MessageParticleEffect extends IIMessage implements IPositionBoundMe
 	protected void onClientReceive(WorldClient world, NetHandlerPlayClient handler)
 	{
 		ParticleRegistry.spawnParticle(id, nbt);
-
-		/*switch(id)
-		{
-			case "white_phosphorus":
-				ParticleRegistry.spawnExplosionPhosphorusFX(pos);
-				break;
-			case "motorbike_explosion":
-			{
-				Entity e = world.getEntityByID(((int)pos.x));
-				if(e instanceof EntityMotorbike)
-				{
-					EntityMotorbike motorbike = (EntityMotorbike)e;
-					motorbike.selfDestruct();
-				}
-			}
-			break;
-			case "gunfire":
-				ParticleRegistry.spawnGunfireFX(pos, Vec3d.ZERO, 8f);
-				break;
-		}*/
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buf)
 	{
 		this.id = ByteBufUtils.readUTF8String(buf);
-		this.nbt = ByteBufUtils.readTag(buf);
+		this.nbt = readEasyNBT(buf);
 	}
 
 	@Override
 	public void toBytes(ByteBuf buf)
 	{
-		EasyNBT.wrapNBT(nbt)
-				.withVec3d(POSITION, pos)
-				.withVec3d(MOTION, motion)
-				.withVec3d(ROTATION, dir);
-
 		ByteBufUtils.writeUTF8String(buf, id);
-		ByteBufUtils.writeTag(buf, nbt);
+		writeEasyNBT(buf, (nbt = (nbt==null?EasyNBT.newNBT(): nbt))
+				.withVec3d(ParticleProperties.POSITION.getName(), position)
+				.withVec3d(ParticleProperties.MOTION.getName(), motion)
+				.withVec2d(ParticleProperties.ROTATION.getName(), rotation)
+		);
 	}
 
 	@Override
@@ -110,6 +90,6 @@ public class MessageParticleEffect extends IIMessage implements IPositionBoundMe
 	@Override
 	public Vec3d getPosition()
 	{
-		return pos;
+		return position;
 	}
 }
