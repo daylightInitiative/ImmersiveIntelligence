@@ -6,24 +6,28 @@ import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import pl.pabilo8.immersiveintelligence.api.ammo.enums.ComponentEffectShape;
 import pl.pabilo8.immersiveintelligence.client.ClientEventHandler;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
+import pl.pabilo8.immersiveintelligence.common.IIConfigHandler.IIConfig.Graphics;
 import pl.pabilo8.immersiveintelligence.common.network.IIMessage;
 import pl.pabilo8.immersiveintelligence.common.util.IIExplosion;
 
-public class MessageExplosion extends IIMessage
+public class MessageExplosion extends IIMessage implements IPositionBoundMessage
 {
+	private World world;
 	private boolean flaming, damagesTerrain;
 	private float radius, strength;
 	private Vec3d pos, direction;
 	private ComponentEffectShape shape;
 
-	public MessageExplosion(boolean flaming, boolean damagesTerrain, float radius, float strength, Vec3d pos, Vec3d direction, ComponentEffectShape shape)
+	public MessageExplosion(World world, boolean flaming, boolean damagesTerrain, float radius, float strength, Vec3d pos, Vec3d direction, ComponentEffectShape shape)
 	{
+		this.world = world;
 		this.flaming = flaming;
 		this.damagesTerrain = damagesTerrain;
 		this.radius = radius;
@@ -47,9 +51,9 @@ public class MessageExplosion extends IIMessage
 	@Override
 	protected void onClientReceive(WorldClient world, NetHandlerPlayClient handler)
 	{
+		ClientEventHandler.addScreenshakeSource(pos, MathHelper.clamp(strength/4f, 0.25f, 3f), 4, 2);
 		ParticleRegistry.spawnExplosionBoomFX(world, pos, direction,
 				new IIExplosion(world, null, pos, direction, radius, strength, shape, flaming, damagesTerrain, false));
-		ClientEventHandler.addScreenshakeSource(pos, MathHelper.clamp(strength/4f, 0.25f, 3f), 4);
 	}
 
 	@Override
@@ -80,5 +84,23 @@ public class MessageExplosion extends IIMessage
 		writeVec3(buf, direction);
 
 		writeEnum(buf, shape);
+	}
+
+	@Override
+	public World getWorld()
+	{
+		return world;
+	}
+
+	@Override
+	public Vec3d getPosition()
+	{
+		return pos;
+	}
+
+	@Override
+	public int getPacketDistance()
+	{
+		return Graphics.explosionMessageDistance;
 	}
 }

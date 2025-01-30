@@ -1,33 +1,23 @@
 package pl.pabilo8.immersiveintelligence.client.fx.utils;
 
 import blusunrize.immersiveengineering.client.ClientUtils;
-import blusunrize.immersiveengineering.common.util.Utils;
 import com.google.gson.JsonObject;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleCloud;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fml.common.toposort.TopologicalSort;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import pl.pabilo8.immersiveintelligence.api.ammo.PenetrationRegistry;
-import pl.pabilo8.immersiveintelligence.api.ammo.penetration.IPenetrationHandler;
-import pl.pabilo8.immersiveintelligence.client.fx.IIParticles;
-import pl.pabilo8.immersiveintelligence.client.fx.builder.ParticleBuilder;
-import pl.pabilo8.immersiveintelligence.client.fx.builder.ParticleModelBuilder;
-import pl.pabilo8.immersiveintelligence.client.fx.builder.ParticleVanillaBuilder;
-import pl.pabilo8.immersiveintelligence.client.fx.particles.*;
-import pl.pabilo8.immersiveintelligence.client.fx.prefab.ParticleAbstractModel;
-import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleUtils.PositionGenerator;
+import pl.pabilo8.immersiveintelligence.client.fx.factories.ParticleFactory;
+import pl.pabilo8.immersiveintelligence.client.fx.particles.AbstractParticle;
 import pl.pabilo8.immersiveintelligence.client.render.IReloadableModelContainer;
 import pl.pabilo8.immersiveintelligence.client.util.tmt.ModelRendererTurbo;
 import pl.pabilo8.immersiveintelligence.common.IILogger;
@@ -35,18 +25,15 @@ import pl.pabilo8.immersiveintelligence.common.util.*;
 import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import javax.vecmath.Vector2f;
+import java.util.*;
 import java.util.function.Supplier;
-
-import static pl.pabilo8.immersiveintelligence.client.fx.utils.IIParticleProperties.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * A class for creating II particle effects
+ * A class for registering II particle effects, effect types and programs.
+ * Allows loading particle effects from {@link ResLoc#EXT_FX_AMT .fx.amt} (JSON) files.
  *
  * @author Pabilo8
  * @updated 05.04.2024
@@ -57,127 +44,172 @@ import static pl.pabilo8.immersiveintelligence.client.fx.utils.IIParticlePropert
 public class ParticleRegistry
 {
 	//--- Static ---//
-	/**
-	 * Used for manual particle creation
-	 */
-	private static final HashMap<String, ParticleBuilder<?>> BUILDER_REGISTRY = new HashMap<>();
-	/**
-	 * Used for loading JSONs
-	 */
-	private static final HashMap<String, Supplier<? extends ParticleBuilder<?>>> TYPE_REGISTRY = new HashMap<>();
-	/**
-	 * Used for loading JSONs
-	 */
-	private static final HashMap<String, BiConsumer<? extends IIParticle, Float>> PROGRAMS_REGISTRY = new HashMap<>();
 
-	static
-	{
-		TYPE_REGISTRY.put("ParticleBasicGravity", () -> new ParticleModelBuilder<>(ParticleBasicGravity::new));
-		TYPE_REGISTRY.put("ParticleModel", () -> new ParticleModelBuilder<>(ParticleModel::new));
-		TYPE_REGISTRY.put("ParticleDebris", () -> new ParticleModelBuilder<>(ParticleDebris::new));
-		TYPE_REGISTRY.put("ParticleVanilla", () -> new ParticleVanillaBuilder(ParticleVanilla::new));
-	}
+	private static final Pattern PROGRAM_PATTERN = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)(\\(([^)]*)\\))?");
+
+	/**
+	 * Stores particle factories
+	 */
+	private static final HashMap<String, ParticleFactory<?>> FACTORIES_REGISTRY = new HashMap<>();
+	/**
+	 * Stores particle types (factory class constructors)
+	 */
+	private static final HashMap<String, Supplier<? extends ParticleFactory<?>>> TYPE_REGISTRY = new HashMap<>();
+	/**
+	 * Stores compiled (with parameters) programs that can be used to modify particles during their lifetime
+	 */
+	private static final HashMap<String, ParticleProgram> PROGRAMS_REGISTRY = new HashMap<>();
+	/**
+	 * Stores particle program providers (uncompiled programs)
+	 */
+	private static final HashMap<String, Supplier<ParticleProgram>> PROGRAM_PROVIDER_REGISTRY = new HashMap<>();
+	private static final HashMap<String, ParticleFileEntry> FILELOADER_ENTRIES = new HashMap<>();
 
 	//--- Particle Registry ---//
 
+	/**
+	 * Clears the particle registry. Called before assets are reloaded.
+	 */
 	public static void cleanBuilderRegistry()
 	{
-		BUILDER_REGISTRY.clear();
+		TYPE_REGISTRY.clear();
+		FACTORIES_REGISTRY.clear();
+		PROGRAM_PROVIDER_REGISTRY.clear();
 		PROGRAMS_REGISTRY.clear();
-	}
-
-	public static BiConsumer<? extends IIParticle, Float> getProgram(String name)
-	{
-		return PROGRAMS_REGISTRY.get(name);
+		FILELOADER_ENTRIES.clear();
 	}
 
 	//--- Registry Methods ---//
 
 	/**
-	 * Registers a new particle builder.
+	 * Registers a new particle type.
 	 *
-	 * @param name                The name of the particle
-	 * @param particleConstructor Particle's constructor method
-	 * @param <T>                 Particle type
-	 * @return The particle builder
+	 * @param name               The name of the particle
+	 * @param factoryConstructor The constructor method of the particle factory
 	 */
-	public static <T extends IIParticle> ParticleBuilder<T> registerParticle(String name, BiFunction<World, Vec3d, T> particleConstructor)
+	public static void registerParticleType(String name, Supplier<? extends ParticleFactory<?>> factoryConstructor)
 	{
-		ParticleBuilder<T> builder = new ParticleBuilder<>(particleConstructor);
-		BUILDER_REGISTRY.put(name, builder);
-		return builder;
+		TYPE_REGISTRY.put(name, factoryConstructor);
 	}
 
 	/**
-	 * Registers a new particle builder for particles using 3D models.
+	 * Registers a new particle effect to be loaded from a file.
 	 *
-	 * @param name The name of the particle
-	 * @return The particle model builder
+	 * @param fileName The name of the file to load the particle from
 	 */
-	public static ParticleModelBuilder<ParticleModel> registerModelParticle(String name)
+	public static void registerParticle(String fileName)
 	{
-		return registerModelParticle(name, ParticleModel::new);
+		FILELOADER_ENTRIES.put(fileName, new ParticleFileEntry(IIReference.RES_II.with(fileName)));
 	}
 
 	/**
-	 * Registers a new particle builder for particles using 3D models.
+	 * Retrieves a particle factory from the registry.
 	 *
-	 * @param name                The name of the particle
-	 * @param particleConstructor Particle's constructor method
-	 * @param <T>                 Particle type
-	 * @return The particle model builder
+	 * @param particleName name of the particle
+	 * @return the particle factory
 	 */
-	public static <T extends ParticleAbstractModel> ParticleModelBuilder<T> registerModelParticle(String name, BiFunction<World, Vec3d, T> particleConstructor)
-	{
-		ParticleModelBuilder<T> builder = new ParticleModelBuilder<>(particleConstructor).subscribeToList("particle/"+name);
-		BUILDER_REGISTRY.put(name, builder);
-		return builder;
-	}
-
-
 	@Nullable
-	public static ParticleBuilder<? extends IIParticle> getParticleBuilder(String particleName)
+	public static ParticleFactory<? extends AbstractParticle> getParticle(String particleName)
 	{
-		return BUILDER_REGISTRY.get(particleName);
-	}
-
-	public static void registerParticleFile(String particleName)
-	{
-		registerParticleFile(particleName, IIReference.RES_II.with(particleName));
+		return FACTORIES_REGISTRY.get(particleName);
 	}
 
 	/**
-	 * Registers a particle by loading data from a {@link ResLoc#EXT_FX_AMT} (JSON) file.
+	 * Registers a new {@link ParticleProgram particle program}.
 	 *
-	 * @param particleName The name of the particle
-	 * @param particlePath The path to the particle file
+	 * @param program
+	 * @param <T>
 	 */
-	public static void registerParticleFile(String particleName, ResLoc particlePath)
+	public static <T extends AbstractParticle> void registerProgram(Supplier<ParticleProgram> program)
 	{
-		try
-		{
-			//Load file
-			JsonObject json = FileUtils.readJSONFile(
-					IIReference.RES_PARTICLES.with(particlePath.withExtension(ResLoc.EXT_FX_AMT).getResourcePath())
-			);
-			//Attempt to create builder
-			ParticleBuilder<?> builder = TYPE_REGISTRY.get(json.get("type").getAsString()).get();
-			//Parse JSON data into builder
-			builder.parseBuilderFromJSON(EasyNBT.wrapNBT(json));
-			//Register for model reload, if applicable
-			if(builder instanceof IReloadableModelContainer)
-				((IReloadableModelContainer<?>)builder).subscribeToList("particle/"+particleName);
-			//Register the particle
-			BUILDER_REGISTRY.put(particleName, builder);
-		} catch(Exception e)
-		{
-			IILogger.error("Couldn't load particle file "+particlePath+", "+e.getMessage());
-		}
+		ParticleProgram defaultProgram = program.get();
+		PROGRAM_PROVIDER_REGISTRY.put(defaultProgram.getProgramName(), program);
+		PROGRAMS_REGISTRY.put(defaultProgram.getProgramName(), defaultProgram);
 	}
 
-	public static <T extends IIParticle> void registerProgram(String name, BiConsumer<T, Float> program)
+	public static ParticleProgram getProgram(String name)
 	{
-		PROGRAMS_REGISTRY.put(name, program);
+		//Regex to match program name with parameters, f.e. "program(1, 2)"
+		Matcher matcher = PROGRAM_PATTERN.matcher(name);
+
+		//Return the program if it exists in the registry
+		if(matcher.matches())
+		{
+			String baseName = matcher.group(1);
+			String params = matcher.group(3);
+
+			//Check if the program with parameters is already cached
+			if(PROGRAMS_REGISTRY.containsKey(name))
+				return PROGRAMS_REGISTRY.get(name);
+
+			//Initialize a new program with the supplier
+			Supplier<ParticleProgram> supplier = PROGRAM_PROVIDER_REGISTRY.get(baseName);
+			if(supplier!=null)
+			{
+				ParticleProgram program = supplier.get();
+				if(params!=null)
+					try
+					{
+						program.initArguments(params.split(","));
+					} catch(ParticleProgram.ParticleArgumentException e)
+					{
+						IILogger.error("Error initializing program arguments for "+name+": "+e.getMessage());
+					}
+				PROGRAMS_REGISTRY.put(name, program);
+				return program;
+			}
+		}
+		else if(PROGRAMS_REGISTRY.containsKey(name))
+			return PROGRAMS_REGISTRY.get(name);
+		return null;
+	}
+
+	//--- Loading ---//
+
+	public static void loadAllParticleFiles()
+	{
+		TopologicalSort.DirectedGraph<String> graph = new TopologicalSort.DirectedGraph<>();
+		FILELOADER_ENTRIES.keySet().forEach(graph::addNode);
+
+		for(String name : FILELOADER_ENTRIES.keySet())
+			try
+			{
+				JsonObject json = IIFileUtils.readJSONFile(IIReference.RES_PARTICLES.with(FILELOADER_ENTRIES.get(name).path.withExtension(ResLoc.EXT_FX_AMT).getResourcePath()));
+				if(json.has("parent"))
+				{
+					String parent = json.get("parent").getAsString();
+					graph.addEdge(parent, name);
+				}
+			} catch(Exception e)
+			{
+				IILogger.error("Couldn't load particle file "+FILELOADER_ENTRIES.get(name).path+", "+e.getMessage());
+			}
+
+		List<String> sortedNames = TopologicalSort.topologicalSort(graph);
+		for(String name : sortedNames)
+		{
+			ParticleFileEntry entry = FILELOADER_ENTRIES.get(name);
+			try
+			{
+				//Parse particle's JSON
+				JsonObject json = IIFileUtils.readJSONFile(IIReference.RES_PARTICLES.with(entry.path.withExtension(ResLoc.EXT_FX_AMT).getResourcePath()));
+				EasyNBT nbt = EasyNBT.wrapNBT(json);
+				ParticleFactory<?> factory = TYPE_REGISTRY.get(nbt.getString("type")).get();
+				nbt.checkSetString("parent", s -> factory.withParent(FILELOADER_ENTRIES.get(s).factory));
+				factory.parseNBT(nbt);
+
+				//Register the particle
+				FACTORIES_REGISTRY.put(name, entry.factory = factory);
+
+				//Register for model reload, if applicable
+				if(factory instanceof IReloadableModelContainer)
+					((IReloadableModelContainer<?>)factory).subscribeToList("particle/"+name);
+
+			} catch(Exception e)
+			{
+				IILogger.error("Couldn't load particle file "+entry.path+", "+e.getMessage());
+			}
+		}
 	}
 
 	//--- Spawning Particles ---//
@@ -188,24 +220,24 @@ public class ParticleRegistry
 	 * @param name The name of the particle
 	 * @param nbt  The NBT data of the particle
 	 */
-	public static void spawnParticle(String name, NBTTagCompound nbt)
+	public static void spawnParticle(String name, EasyNBT nbt)
 	{
 		//check if contained in registry
-		ParticleBuilder<?> builder = BUILDER_REGISTRY.get(name);
-		if(builder==null)
+		ParticleFactory<?> factory = FACTORIES_REGISTRY.get(name);
+		if(factory==null)
 			return;
 
-		//set particle params
-		EasyNBT eNBT = EasyNBT.wrapNBT(nbt);
-		builder.withProperty(easyNBT -> easyNBT.mergeWith(nbt));
-
 		//saved by default in IIParticle
-		builder.spawnParticle(eNBT.getVec3d(POSITION), eNBT.getVec3d(MOTION), eNBT.getVec3d(ROTATION));
+		factory.spawn(
+				nbt.getVec3d(ParticleProperties.POSITION.getName()),
+				nbt.getVec3d(ParticleProperties.MOTION.getName()),
+				nbt.getVector2f(ParticleProperties.ROTATION.getName())
+		).deserializeNBT(nbt.unwrap());
 	}
 
 	/**
-	 * Spawns a registered particle effect at the given position, moving at and facing the same direction.
-	 * Overload of {@link #spawnParticle(String, Vec3d, Vec3d, Vec3d)}.
+	 * Spawns a registered particle effect at the given position, moving towards and facing the same direction.
+	 * Overload of {@link #spawnParticle(String, Vec3d, Vec3d, Vector2f)}.
 	 *
 	 * @param name      The name of the particle
 	 * @param pos       The position to spawn the particle at
@@ -213,13 +245,14 @@ public class ParticleRegistry
 	 * @return The spawned particle
 	 */
 	@Nullable
-	public static IIParticle spawnParticle(String name, Vec3d pos, Vec3d direction)
+	public static AbstractParticle spawnParticle(String name, Vec3d pos, Vector2f direction)
 	{
-		return spawnParticle(name, pos, direction, direction);
+		Vec3d motion = IIMath.offsetPosDirection(1, direction.x, direction.y).normalize();
+		return spawnParticle(name, pos, motion, direction);
 	}
 
 	/**
-	 * Spawns a registered particle effect at the given position, with different motion and facing directions.
+	 * Spawns a registered particle effect at the given position, with different motion and rotation.
 	 *
 	 * @param name      The name of the particle
 	 * @param pos       The position to spawn the particle at
@@ -228,29 +261,40 @@ public class ParticleRegistry
 	 * @return The spawned particle
 	 */
 	@Nullable
-	public static IIParticle spawnParticle(String name, Vec3d pos, Vec3d direction, Vec3d motion)
+	public static AbstractParticle spawnParticle(String name, Vec3d pos, Vec3d motion, Vector2f direction)
 	{
-		ParticleBuilder<?> builder = BUILDER_REGISTRY.get(name);
-		if(builder!=null)
-			return builder.spawnParticle(pos, motion, direction);
+		ParticleFactory<?> factory = FACTORIES_REGISTRY.get(name);
+		if(factory!=null)
+			return factory.spawn(pos, motion, direction);
 		return null;
 	}
 
 	/**
 	 * Spawns a registered particle effect at the given position, with different motion and facing directions.
 	 *
-	 * @param name      The name of the particle
-	 * @param pos       The position to spawn the particle at
-	 * @param direction The direction the particle should move in
-	 * @param motion    The motion of the particle
+	 * @param name           The name of the particle
+	 * @param pos            The position to spawn the particle at
+	 * @param motion         The motion of the particle
+	 * @param directionYaw   The yaw direction the particle should face
+	 * @param directionPitch The pitch direction the particle should face
 	 * @return The spawned particle
 	 */
 	@Nullable
-	public static <T extends IIParticle> T spawnParticle(Class<T> klass, String name, Vec3d pos, Vec3d direction, Vec3d motion)
+	@SuppressWarnings("unchecked")
+	public static <T extends AbstractParticle> T spawnParticle(Class<T> klass, String name, Vec3d pos, Vec3d motion, float directionYaw, float directionPitch)
 	{
-		ParticleBuilder<?> builder = BUILDER_REGISTRY.get(name);
-		if(builder!=null)
-			return ((T)builder.spawnParticle(pos, motion, direction));
+		ParticleFactory<?> factory = FACTORIES_REGISTRY.get(name);
+		if(factory!=null)
+			return ((T)factory.spawn(pos, motion, directionYaw, directionPitch));
+		return null;
+	}
+
+	@Nullable
+	public static AbstractParticle scheduleSpawnParticle(String name, Vec3d pos, Vec3d motion, Vector2f direction, int delay)
+	{
+		ParticleFactory<?> factory = FACTORIES_REGISTRY.get(name);
+		if(factory!=null)
+			return factory.scheduleSpawn(pos, motion, direction, delay);
 		return null;
 	}
 
@@ -258,92 +302,106 @@ public class ParticleRegistry
 
 	public static List<String> getRegisteredNames()
 	{
-		return new ArrayList<>(BUILDER_REGISTRY.keySet());
+		return new ArrayList<>(FACTORIES_REGISTRY.keySet());
 	}
 
 	//--- Old Methods ---//
 
 	public static void spawnExplosionBoomFX(World world, Vec3d pos, Vec3d dir, IIExplosion explosion)
 	{
-		double powerFraction = explosion.getPower()*0.0625;
-		int maxFractions = (int)Math.max(1, 4-Math.ceil(explosion.getSize()/4d));
+		float playerDistance = (float)ClientUtils.mc().player.getDistance(pos.x, pos.y, pos.z);
+		float size = (float)Math.min(explosion.getSize(), explosion.getPower()+1);
+		float logSize = 1f+MathHelper.log2((int)(size));
+		boolean detailed = playerDistance < 64;
 
-		//normalize direction
-		Vec3d explosionParticleDir = ParticleUtils.normalizeExplosionDirection(dir);
+		//If the direction is zero, set it to up (usual direction for explosions)
+		if(dir.equals(Vec3d.ZERO))
+			dir = new Vec3d(0, 1, 0);
+		else
+			dir = dir.scale(-1);
+		//Make it a unit vector
+		dir = IIParticleUtils.normalizeExplosionDirection(dir);
+		Vector2f facing = IIParticleUtils.toVector2f(dir);
 
-		//spawn explosion center + smoke
-		IIParticle explosionParticle = ParticleRegistry.spawnParticle(IIParticles.PARTICLE_EXPLOSION_TNT, pos,
-				explosionParticleDir, Vec3d.ZERO);
-		explosionParticle.setProperties(EasyNBT.newNBT().withDouble(SIZE, explosion.getSize()/5f));
+		//Spawn a shockwave
+		spawnParticle("explosion/shockwave", pos.add(dir), Vec3d.ZERO, facing)
+				.withProperty(ParticleProperties.SIZE, size*0.6f)
+				.withProperty(ParticleProperties.MAX_LIFETIME, (int)(4*logSize)+1);
+		scheduleSpawnParticle("explosion/glow", pos.add(dir), Vec3d.ZERO, new Vector2f(0, 0), 1)
+				.withProperty(ParticleProperties.SIZE, size);
 
-		//defaultize direction
-		dir = new Vec3d(0, 1, 0);
+		spawnParticle("explosion/main", pos.add(dir.scale(size/2f)), Vec3d.ZERO, facing)
+				.withProperty(ParticleProperties.SIZE, size*0.75f)
+				.withProperty(ParticleProperties.MAX_LIFETIME, (int)(4*logSize)+3);
 
-		//Custom sounds
-		world.playSound(Minecraft.getMinecraft().player, pos.x, pos.y, pos.z, SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 4.0F, (1.0F+(world.rand.nextFloat()-world.rand.nextFloat())*0.2F)*0.7F);
+		Set<BlockPos> topBlocks = IIExplosion.getTopBlocks(explosion.generateAffectedBlockPositions(), EnumFacing.getFacingFromVector((float)dir.x, (float)dir.y, (float)dir.z));
 
-		//Create debris for destroyed blocks at the end of explosion ray scan
-		for(BlockPos destroyed : explosion.generateAffectedBlockPositions(true))
+		for(BlockPos destroyed : topBlocks)
 		{
-			//Get the parameters of the destroyed block
-			IBlockState state = world.getBlockState(destroyed);
-			IPenetrationHandler penetrationHandler = PenetrationRegistry.getPenetrationHandler(state);
-			String debrisName = penetrationHandler.getDebrisParticle();
+			//Calculate distance factor
+			double distance = pos.distanceTo(new Vec3d(destroyed).addVector(0.5, 0, 0.5));
 
-			//Handler has no debris particle or it's not registered
-			if(debrisName.isEmpty()||ParticleRegistry.getParticleBuilder(debrisName)==null)
-				continue;
+			if(detailed)
+				scheduleSpawnParticle("smoke/dust_cloud", new Vec3d(destroyed).addVector(0.5, 0, 0.5),
+						Vec3d.ZERO, new Vector2f(0, 0), 10);
+			spawnParticle("explosion/glow_individual", new Vec3d(destroyed).addVector(0.5, 0, 0.5),
+					Vec3d.ZERO, new Vector2f(0, 0));
 
-			//Get position and direction relative to the center of the explosion
-			ResLoc resLoc = ResLoc.of(ClientUtils.getSideTexture(state, EnumFacing.DOWN));
-			Vec3d desPos = new Vec3d(destroyed);
-			Vec3d desDir = desPos.subtract(pos).normalize();
+			String debrisParticle = PenetrationRegistry.getPenetrationHandler(world.getBlockState(destroyed))
+					.getDebrisParticle();
+			if(debrisParticle!=null)
+			{
+				double factor = MathHelper.clamp(distance/size+(IIParticleUtils.randFloat.get()*0.01), 0, 1);
+				//Calculate direction vector
+				Vec3d offCenterDirection = new Vec3d(destroyed).addVector(0.5, 0, 0.5)
+						.subtract(pos).normalize();
+				Vec3d debrisMotion = dir.scale(1-factor).add(offCenterDirection.scale(factor))
+						.scale(1.05f*Math.max(1f, explosion.getPower()/6f));
 
-			//Random additional offset
-			Vec3d offset = ParticleUtils.getRandXZ().scale(0.05);
+				//Spawn the debris particle
+				scheduleSpawnParticle(debrisParticle, new Vec3d(destroyed).addVector(0, 0f, 0),
+						debrisMotion, new Vector2f(IIParticleUtils.randFloat.get()*4, IIParticleUtils.randFloat.get()*4), 3)
+						.withProperty(ParticleProperties.TEXTURES, new ResourceLocation[]{
+								ClientUtils.getSideTexture(world.getBlockState(destroyed), EnumFacing.WEST)
+						});
 
-			//Create debris particle
-			IIParticle particle = ParticleRegistry.spawnParticle(debrisName,
-					desPos.add(offset).addVector(0, 0.5, 0),
-					desDir,
-					desDir.scale(0.0625)
-							.add(dir.scale(powerFraction+ParticleUtils.randFloat.get()*powerFraction))
-			);
-			assert particle instanceof ParticleAbstractModel;
-			((ParticleAbstractModel)particle).retexture(0, resLoc);
+				//Spawn a smoke trace in the same direction
+				scheduleSpawnParticle("smoke/smoke_trace", new Vec3d(destroyed).addVector(0.5, 0, 0.5),
+						Vec3d.ZERO, IIParticleUtils.toVector2f(debrisMotion), 1)
+						.withProperty(ParticleProperties.SIZE, logSize*0.4f)
+						.withProperty(ParticleProperties.MAX_LIFETIME, (int)(4*(logSize))+1);
 
-			//Create smoke trace particle
-			ParticleRegistry.spawnParticle(IIParticles.PARTICLE_SMOKE_TRACE,
-							desPos.add(offset).addVector(0, 0.5, 0), desDir, Vec3d.ZERO)
-					.setProperties(EasyNBT.newNBT().withColor(COLOR, IIColor.fromPackedRGB(0x373130))
-							.withVec3d(SCALE, new Vec3d(2, 7, 2)));
-
-			//Create block chunk particles
-			Vec3d finalDir = dir;
-			ParticleUtils.position(PositionGenerator.RAND_XZ, desPos.addVector(0, 0.5, 0), 1+Utils.RAND.nextInt(maxFractions), 0.05,
-					(p, d) -> {
-						IIParticle chunk = ParticleRegistry.spawnParticle(
-								IIParticles.PARTICLE_BLOCK_CHUNK, p, desDir,
-								desDir.scale(0.25*ParticleUtils.randFloat.get())
-										.add(finalDir.scale(powerFraction+ParticleUtils.randFloat.get()*powerFraction))
-						);
-						assert chunk instanceof ParticleAbstractModel;
-						((ParticleAbstractModel)chunk).retexture(0, resLoc);
+				if(detailed)
+					for(int i = 0; i < 2; i++)
+					{
+						factor *= IIParticleUtils.randFloat.get()*2f;
+						debrisMotion = dir.scale(1-factor).add(offCenterDirection.scale(factor))
+								.scale(1.05f*Math.max(1f, explosion.getPower()/6f));
+						scheduleSpawnParticle(debrisParticle, new Vec3d(destroyed).addVector(0, 0f, 0),
+								debrisMotion, new Vector2f(IIParticleUtils.randFloat.get()*4, IIParticleUtils.randFloat.get()*4), 3*i)
+								.withProperty(ParticleProperties.TEXTURES, new ResourceLocation[]{
+										ClientUtils.getSideTexture(world.getBlockState(destroyed), EnumFacing.DOWN)
+								});
 					}
-			);
+
+			}
 		}
 
 	}
 
-	public static void spawnTracerFX(Vec3d pos, Vec3d motion, float size, int color)
+	public static void spawnTracerFX(Vec3d pos, Vec3d motion, float size, IIColor color)
 	{
-		/*ParticleTracer particle = new ParticleTracer(getWorld(), pos, motion, size, color);
-		ParticleSystem.addEffect(particle);*/
+		ParticleRegistry.spawnParticle("ammo/tracer", pos, motion, new Vector2f(0, 0))
+				.withProperty(ParticleProperties.COLOR, color)
+				.withProperty(ParticleProperties.SIZE, size)
+				.withProperty(ParticleProperties.MAX_LIFETIME, 20);
 	}
 
 	//TODO: 04.05.2024 replace with AMT models
-	public static void spawnGunfireFX(Vec3d pos, Vec3d motion, float size)
+	public static void spawnGunfireFX(Vec3d pos, Vec3d direction, float size)
 	{
+		ParticleRegistry.spawnParticle("ammo/gunfire", pos, Vec3d.ZERO, IIParticleUtils.toVector2f(direction))
+				.withProperty(ParticleProperties.SIZE, size*0.25f);
 		/*ParticleGunfire particle = new ParticleGunfire(getWorld(), pos, motion, size);
 		ParticleSystem.addEffect(particle);*/
 	}
@@ -368,7 +426,7 @@ public class ParticleRegistry
 		{
 			Vec3d v = new Vec3d(1, 0, 0).rotateYaw(i/20f*360f);
 
-			ParticleCloud particle = (ParticleCloud)spawnVanillaParticle(EnumParticleTypes.CLOUD, pos, ParticleUtils.withY(v.scale(0.25), 0.125));
+			ParticleCloud particle = (ParticleCloud)spawnVanillaParticle(EnumParticleTypes.CLOUD, pos, IIParticleUtils.withY(v.scale(0.25), 0.125));
 			if(particle!=null)
 			{
 				particle.setRBGColorF(rand.nextFloat()*0.125f, rand.nextFloat()*0.125f, 0);
@@ -381,30 +439,33 @@ public class ParticleRegistry
 
 	}
 
-	public static void spawnGasCloud(Vec3d pos, float size, Fluid fluid) {
-		// Check if fluid is not null
-		if (fluid == null) return;
+	public static void spawnGasCloud(Vec3d pos, float size, Fluid fluid)
+	{
+		//Check if fluid is not null
+		if(fluid==null) return;
 
-		// Get the color of the fluid
-		int color = fluid.getColor(); // Assuming the Fluid class has this method
-		float red = ((color >> 16) & 255) / 255.0F;
-		float green = ((color >> 8) & 255) / 255.0F;
-		float blue = (color & 255) / 255.0F;
+		//Get the color of the fluid
+		int color = fluid.getColor(); //Assuming the Fluid class has this method
+		float red = ((color>>16)&255)/255.0F;
+		float green = ((color>>8)&255)/255.0F;
+		float blue = (color&255)/255.0F;
 
-		// Spawn multiple particles for the gas cloud effect
-		for (int i = 0; i < 40 * size; i++) {
-			// Randomly distribute particles in a larger spherical area
-			double offsetX = (Math.random() - 0.5) * size * 3.5; // Increased spread
-			double offsetY = (Math.random() - 0.5) * size * 2; // Increased vertical spread
-			double offsetZ = (Math.random() - 0.5) * size * 3.5; // Increased spread
+		//Spawn multiple particles for the gas cloud effect
+		for(int i = 0; i < 40*size; i++)
+		{
+			//Randomly distribute particles in a larger spherical area
+			double offsetX = (Math.random()-0.5)*size*3.5; //Increased spread
+			double offsetY = (Math.random()-0.5)*size*2; //Increased vertical spread
+			double offsetZ = (Math.random()-0.5)*size*3.5; //Increased spread
 
-			Vec3d particlePos = pos.add(new Vec3d(offsetX, offsetY - 1.0, offsetZ)); // Lower spawn point by 1 block
+			Vec3d particlePos = pos.add(new Vec3d(offsetX, offsetY-1.0, offsetZ)); //Lower spawn point by 1 block
 
-			ParticleCloud particle = (ParticleCloud) spawnVanillaParticle(EnumParticleTypes.CLOUD, particlePos, Vec3d.ZERO);
-			if (particle != null) {
-				particle.setRBGColorF(red, green, blue); // Set the color of the particle
-				particle.setMaxAge(160); // Adjust lifespan as needed
-				particle.multipleParticleScaleBy(5f); // Adjust scale if necessary
+			ParticleCloud particle = (ParticleCloud)spawnVanillaParticle(EnumParticleTypes.CLOUD, particlePos, Vec3d.ZERO);
+			if(particle!=null)
+			{
+				particle.setRBGColorF(red, green, blue); //Set the color of the particle
+				particle.setMaxAge(160); //Adjust lifespan as needed
+				particle.multipleParticleScaleBy(5f); //Adjust scale if necessary
 			}
 		}
 	}
@@ -416,5 +477,16 @@ public class ParticleRegistry
 		return ClientUtils.mc().effectRenderer.spawnEffectParticle(particle.getParticleID(),
 				pos.x, pos.y, pos.z,
 				motion.x, motion.y, motion.z);
+	}
+
+	private static class ParticleFileEntry
+	{
+		ResLoc path;
+		ParticleFactory<?> factory;
+
+		ParticleFileEntry(ResLoc path)
+		{
+			this.path = path;
+		}
 	}
 }

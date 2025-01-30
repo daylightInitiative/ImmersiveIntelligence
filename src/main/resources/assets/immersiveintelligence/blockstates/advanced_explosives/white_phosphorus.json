@@ -1,0 +1,32 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "transform": "forge:default-block",
+    "textures": {
+      "top": "immersiveintelligence:blocks/advanced_explosives/top",
+      "bottom": "immersiveintelligence:blocks/advanced_explosives/bottom",
+      "side": "immersiveintelligence:blocks/advanced_explosives/white_phosphorus_side"
+    },
+    "model": "immersiveengineering:ie_pillar"
+  },
+  "variants": {
+    "inventory,type=white_phosphorus": [
+      {
+        "textures": {
+          "top": "immersiveintelligence:blocks/advanced_explosives/top",
+          "bottom": "immersiveintelligence:blocks/advanced_explosives/bottom",
+          "side": "immersiveintelligence:blocks/advanced_explosives/white_phosphorus_side"
+        }
+      }
+    ],
+    "type": {
+      "white_phosphorus": {
+        "textures": {
+          "top": "immersiveintelligence:blocks/advanced_explosives/top",
+          "bottom": "immersiveintelligence:blocks/advanced_explosives/bottom",
+          "side": "immersiveintelligence:blocks/advanced_explosives/white_phosphorus_side"
+        }
+      }
+    }
+  }
+}

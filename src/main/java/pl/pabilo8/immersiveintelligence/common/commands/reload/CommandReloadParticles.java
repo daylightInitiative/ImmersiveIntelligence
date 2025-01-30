@@ -49,6 +49,7 @@ public class CommandReloadParticles extends CommandBase
 		ParticleRegistry.cleanBuilderRegistry();
 		IIParticles.preInit();
 		IIParticles.init();
+		ParticleRegistry.loadAllParticleFiles();
 		IIModelRegistry.INSTANCE.getReloadableModels().stream()
 				.filter(res -> res.getResourcePath().startsWith("particle/"))
 				.forEach(IIModelRegistry.INSTANCE::reloadModel);
