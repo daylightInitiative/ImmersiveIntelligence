@@ -1,9 +1,15 @@
 {
   "type": "ParticleModel",
-  "models": ["cloth1.obj", "cloth2.obj", "cloth3.obj", "cloth4.obj", "cloth5.obj"],
-  "life_time": 60,
-  "draw_stage": "custom_additive",
+  "models": [
+    "debris/cloth/cloth1.obj", "debris/cloth/cloth2.obj", "debris/cloth/cloth3.obj", "debris/cloth/cloth4.obj",
+    "debris/cloth/cloth5.obj"
+  ],
+  "max_lifetime": 50,
+  "draw_stage": "custom",
+  "aabb": 0.125,
   "programs": [
-    "shockwave_transition"
+    "gravity(1.0,0.08)",
+    "dust_transition",
+    "rotation(2,2)"
   ]
 }
