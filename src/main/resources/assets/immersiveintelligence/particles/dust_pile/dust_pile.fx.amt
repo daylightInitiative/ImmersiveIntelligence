@@ -1,0 +1,9 @@
+{
+  "type": "ParticleModel",
+  "models": ["dust_pile_tiny.obj", "dust_pile_small.obj", "dust_pile_medium.obj","dust_pile_large.obj","dust_pile_big.obj"],
+  "life_time": 60,
+  "draw_stage": "custom_smoke_noise_shader",
+  "programs": [
+    "smoke_transition"
+  ]
+}

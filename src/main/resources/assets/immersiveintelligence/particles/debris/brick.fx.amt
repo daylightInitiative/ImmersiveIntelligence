@@ -1,12 +1,9 @@
 {
   "type": "ParticleModel",
-  "models": ["debris/brick/brick1.obj", "debris/brick/brick2.obj"],
-  "max_lifetime": 60,
-  "draw_stage": "custom",
-  "aabb": 0.25,
+  "models": ["brick1.obj","brick2.obj"],
+  "life_time": 80,
+  "draw_stage": "custom_additive",
   "programs": [
-    "gravity(1.0,0.08)",
-    "dust_transition",
-    "rotation(1,1)"
+    "shockwave_transition"
   ]
 }

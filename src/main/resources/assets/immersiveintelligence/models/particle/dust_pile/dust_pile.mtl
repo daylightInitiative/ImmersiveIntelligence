@@ -1,4 +1,12 @@
-# Made by Pabilo8 with Blockbench
+# Made with Blockbench
 
-newmtl dust
-map_Kd immersiveintelligence:blocks/multiblock/sawmill/dust
+newmtl dust_pile_tiny
+map_Kd immersiveintelligence:particle/dust_pile/dust
+newmtl dust_pile_small
+map_Kd immersiveintelligence:particle/dust_pile/dust
+newmtl dust_pile_medium
+map_Kd immersiveintelligence:particle/dust_pile/dust
+newmtl dust_pile_large
+map_Kd immersiveintelligence:particle/dust_pile/dust
+newmtl dust_pile_big
+map_Kd immersiveintelligence:particle/dust_pile/dust
