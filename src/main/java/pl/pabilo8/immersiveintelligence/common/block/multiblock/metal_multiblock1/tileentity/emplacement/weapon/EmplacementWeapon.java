@@ -22,6 +22,7 @@ import pl.pabilo8.immersiveintelligence.api.utils.MachineUpgrade;
 import pl.pabilo8.immersiveintelligence.client.fx.utils.ParticleRegistry;
 import pl.pabilo8.immersiveintelligence.client.gui.block.emplacement.GuiEmplacementPageStorage;
 import pl.pabilo8.immersiveintelligence.client.util.tmt.ModelRendererTurbo;
+import pl.pabilo8.immersiveintelligence.common.IIUtils;
 import pl.pabilo8.immersiveintelligence.common.block.multiblock.metal_multiblock1.tileentity.emplacement.TileEntityEmplacement;
 import pl.pabilo8.immersiveintelligence.common.entity.EntityEmplacementWeapon;
 import pl.pabilo8.immersiveintelligence.common.entity.EntityEmplacementWeapon.EmplacementHitboxEntity;

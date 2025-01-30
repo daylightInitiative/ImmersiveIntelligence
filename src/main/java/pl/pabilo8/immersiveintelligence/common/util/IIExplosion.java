@@ -11,9 +11,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.Tuple;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -22,7 +20,6 @@ import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
 import pl.pabilo8.immersiveintelligence.api.ammo.enums.ComponentEffectShape;
-import pl.pabilo8.immersiveintelligence.common.EventHandler;
 import pl.pabilo8.immersiveintelligence.common.IISounds;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
 import pl.pabilo8.immersiveintelligence.common.network.messages.MessageExplosion;
@@ -32,7 +29,10 @@ import javax.annotation.Nullable;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector4f;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Pabilo8
@@ -52,7 +52,6 @@ public class IIExplosion extends Explosion
 	private final ComponentEffectShape shape;
 	private final float power;
 	private final boolean doDrops;
-	private int delay;
 
 	public IIExplosion(World world, @Nonnull Entity exploder,
 					   Vec3d position, @Nullable Vec3d direction,
@@ -66,44 +65,12 @@ public class IIExplosion extends Explosion
 		this.shape = shape;
 		this.power = power;
 		this.doDrops = doDrops;
-		this.delay = 2;
-	}
-
-	/**
-	 * @param positions all block positions
-	 * @param facing    facing to check for
-	 * @return positions with highest axis value indicated by the facing
-	 */
-	public static Set<BlockPos> getTopBlocks(Set<BlockPos> positions, EnumFacing facing)
-	{
-		EnumFacing.Axis axis = facing.getAxis();
-		EnumFacing.AxisDirection direction = facing.getAxisDirection();
-		Set<BlockPos> topBlocks = Sets.newHashSet();
-
-		// Group positions by the other two axes
-		Map<Tuple<Integer, Integer>, BlockPos> groupedPositions = new HashMap<>();
-		for(BlockPos pos : positions)
-		{
-			int primary = axis==EnumFacing.Axis.X?pos.getX(): (axis==EnumFacing.Axis.Y?pos.getY(): pos.getZ());
-			int secondary1 = axis==EnumFacing.Axis.X?pos.getY(): pos.getX();
-			int secondary2 = axis==EnumFacing.Axis.Z?pos.getY(): pos.getZ();
-
-			Tuple<Integer, Integer> key = new Tuple<>(secondary1, secondary2);
-			if(!groupedPositions.containsKey(key)||
-					(direction==EnumFacing.AxisDirection.POSITIVE&&primary > (axis==EnumFacing.Axis.X?groupedPositions.get(key).getX(): (axis==EnumFacing.Axis.Y?groupedPositions.get(key).getY(): groupedPositions.get(key).getZ())))||
-					(direction==EnumFacing.AxisDirection.NEGATIVE&&primary < (axis==EnumFacing.Axis.X?groupedPositions.get(key).getX(): (axis==EnumFacing.Axis.Y?groupedPositions.get(key).getY(): groupedPositions.get(key).getZ()))))
-				groupedPositions.put(key, pos);
-		}
-
-		topBlocks.addAll(groupedPositions.values());
-		return topBlocks;
 	}
 
 	@Override
 	public void doExplosionA()
 	{
-		this.affectedBlockPositions.addAll(generateAffectedBlockPositions());
-
+		this.affectedBlockPositions.addAll(generateAffectedBlockPositions(false));
 		float diameter = this.size*2.0F;
 		int k1 = MathHelper.floor(this.x-(double)diameter-1.0D);
 		int l1 = MathHelper.floor(this.x+(double)diameter+1.0D);
@@ -111,7 +78,6 @@ public class IIExplosion extends Explosion
 		int i1 = MathHelper.floor(this.y+(double)diameter+1.0D);
 		int j2 = MathHelper.floor(this.z-(double)diameter-1.0D);
 		int j1 = MathHelper.floor(this.z+(double)diameter+1.0D);
-
 		List<Entity> list = this.world.getEntitiesWithinAABBExcludingEntity(this.exploder, new AxisAlignedBB(k1, i2, j2, l1, i1, j1));
 		ForgeEventFactory.onExplosionDetonate(this.world, this, list, diameter);
 		Vec3d vec3d = new Vec3d(this.x, this.y, this.z);
@@ -135,8 +101,7 @@ public class IIExplosion extends Explosion
 						zDiff = zDiff/dist;
 						double blockDensity = this.world.getBlockDensity(vec3d, entity.getEntityBoundingBox());
 						double reversed = (1.0D-fragment)*blockDensity;
-						entity.attackEntityFrom(DamageSource.causeExplosionDamage(this),
-								(float)((int)((reversed*reversed+reversed)/2.0D*7.0D*(double)diameter+1.0D)));
+						entity.attackEntityFrom(DamageSource.causeExplosionDamage(this), (float)((int)((reversed*reversed+reversed)/2.0D*7.0D*(double)diameter+1.0D)));
 						double reversedTmp = reversed;
 
 						if(entity instanceof EntityLivingBase)
@@ -161,24 +126,24 @@ public class IIExplosion extends Explosion
 	/**
 	 * @return set of positions to be affected by this explosion
 	 */
-	public Set<BlockPos> generateAffectedBlockPositions()
+	public Set<BlockPos> generateAffectedBlockPositions(boolean getLastOnly)
 	{
 		Set<BlockPos> set;
 		//Generate block positions based on shape
 		switch(shape)
 		{
 			case LINE:
-				set = generateLineBlockPos();
+				set = generateLineBlockPos(getLastOnly);
 				break;
 			case CONE:
-				set = generateConeBlockPos(1, 1f);
+				set = generateConeBlockPos(getLastOnly, 1, 1f);
 				break;
 			case ORB:
-				set = generateOrbBlockPos(1, 1f);
+				set = generateOrbBlockPos(getLastOnly, 1, 1f);
 				break;
 			default:
 			case STAR:
-				set = generateOrbBlockPos(0.35f, 0.9f);
+				set = generateOrbBlockPos(getLastOnly, 0.35f, 0.9f);
 				break;
 		}
 		return set;
@@ -192,9 +157,10 @@ public class IIExplosion extends Explosion
 	 *
 	 * @return blocks affected by an orb shaped explosion
 	 */
-	private Set<BlockPos> generateOrbBlockPos(float densityScale, float powerMultiplier)
+	private Set<BlockPos> generateOrbBlockPos(boolean getLastOnly, float densityScale, float powerMultiplier)
 	{
 		ArrayList<BlockPos> set = new ArrayList<>();
+		ArrayList<BlockPos> firsts = new ArrayList<>();
 		//Steps per rotation
 		final int steps = MathHelper.ceil(Math.PI*size*densityScale);
 		float power, pitch, yaw;
@@ -219,6 +185,7 @@ public class IIExplosion extends Explosion
 
 				//Revert position to explosion center
 				current = center;
+				boolean atLeastOne = false;
 
 				//Trace from start to end
 				while(center.distanceTo(current) <= size&&power > 0)
@@ -236,20 +203,27 @@ public class IIExplosion extends Explosion
 						if(!world.isBlockLoaded(pos))
 							continue;
 						if(canDestroyBlock(pos, power))
+						{
 							set.add(pos);
+							atLeastOne = true;
+						}
 					}
 
 					//Move forward
 					current = current.add(direction);
 				}
+
+				//Add last block if it was not added before
+				if(getLastOnly&&atLeastOne&&!firsts.contains(set.get(set.size()-1)))
+					firsts.add(new BlockPos(set.get(set.size()-1)));
 			}
-		return Sets.newHashSet(set);
+		return Sets.newHashSet(getLastOnly&&!firsts.isEmpty()?firsts: set);
 	}
 
 	/**
 	 * @return blocks affected by a line shaped explosion
 	 */
-	private Set<BlockPos> generateLineBlockPos()
+	private Set<BlockPos> generateLineBlockPos(boolean getLastOnly)
 	{
 		ArrayList<BlockPos> set = new ArrayList<>();
 		float power = this.power;
@@ -266,15 +240,16 @@ public class IIExplosion extends Explosion
 			else
 				break;
 		}
-		return Sets.newHashSet(set);
+		return getLastOnly&&!set.isEmpty()?Collections.singleton(set.get(0)): Sets.newHashSet(set);
 	}
 
 	/**
 	 * @return blocks affected by a cone shaped explosion
 	 */
-	private Set<BlockPos> generateConeBlockPos(float densityScale, float powerMultiplier)
+	private Set<BlockPos> generateConeBlockPos(boolean getLastOnly, float densityScale, float powerMultiplier)
 	{
 		ArrayList<BlockPos> set = new ArrayList<>();
+		ArrayList<BlockPos> firsts = new ArrayList<>();
 
 		//Steps per rotation
 		final int steps = MathHelper.ceil(0.5f*size*densityScale);
@@ -309,8 +284,10 @@ public class IIExplosion extends Explosion
 					//Move forward
 					current = current.add(initial);
 				}
+				if(getLastOnly&&!current.equals(center)&&!firsts.contains(new BlockPos(current)))
+					firsts.add(new BlockPos(current));
 			}
-		return Sets.newHashSet(set);
+		return Sets.newHashSet(getLastOnly&&!firsts.isEmpty()?firsts: set);
 	}
 
 	public Vec3d rotateVector(Vec3d vec, float pitch, float yaw)
@@ -342,15 +319,7 @@ public class IIExplosion extends Explosion
 				SoundCategory.NEUTRAL, (int)(72*size), 1f, pitch);
 
 		if(spawnParticles)
-			IIPacketHandler.sendToClient(new MessageExplosion(this.world, this.causesFire, this.damagesTerrain, this.size, this.power, center, direction, shape));
-
-		EventHandler.pendingExplosions.add(this);
-	}
-
-	public boolean explodeBlocks()
-	{
-		if((delay--) >= 0)
-			return false;
+			IIPacketHandler.INSTANCE.sendToAllAround(new MessageExplosion(this.causesFire, this.damagesTerrain, this.size, this.power, center, direction, shape), IIPacketHandler.targetPointFromPos(getPos(), world, (int)(64+size)));
 
 		if(this.damagesTerrain)
 			for(BlockPos blockpos : this.affectedBlockPositions)
@@ -371,8 +340,6 @@ public class IIExplosion extends Explosion
 			for(BlockPos blockpos1 : this.affectedBlockPositions)
 				if(this.world.getBlockState(blockpos1).getMaterial()==Material.AIR&&this.world.getBlockState(blockpos1.down()).isFullBlock()&&this.random.nextInt(3)==0)
 					this.world.setBlockState(blockpos1, Blocks.FIRE.getDefaultState());
-
-		return true;
 	}
 
 	public IIExplosion doExplosion()

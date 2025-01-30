@@ -1,11 +1,10 @@
 {
   "type": "ParticleVanilla",
   "textures": "minecraft:blocks/dirt",
-  "max_lifetime": 10,
+  "life_time": 80,
   "draw_stage": "custom",
   "aabb": 0.0625,
   "programs": [
-    "smoke_transition",
-    "gravity(0.998,0.125)"
+    "smoke_transition"
   ]
 }

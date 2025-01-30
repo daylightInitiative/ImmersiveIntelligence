@@ -28,7 +28,6 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.WorldTickEvent;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -48,12 +47,9 @@ import pl.pabilo8.immersiveintelligence.common.item.ammo.ItemIIBulletMagazine;
 import pl.pabilo8.immersiveintelligence.common.item.armor.ItemIILightEngineerBoots;
 import pl.pabilo8.immersiveintelligence.common.network.IIPacketHandler;
 import pl.pabilo8.immersiveintelligence.common.network.messages.MessageBlockDamageSync;
-import pl.pabilo8.immersiveintelligence.common.util.IIExplosion;
 import pl.pabilo8.immersiveintelligence.common.util.IIReference;
 import pl.pabilo8.immersiveintelligence.common.util.item.IIItemUtil;
 import pl.pabilo8.immersiveintelligence.common.util.item.ItemIIUpgradeableArmor;
-
-import java.util.ArrayList;
 
 /**
  * Handles events for server side.
@@ -63,8 +59,6 @@ import java.util.ArrayList;
  */
 public class EventHandler
 {
-	public static ArrayList<IIExplosion> pendingExplosions = new ArrayList<>();
-
 	//--- World Load Handling ---//
 	@SubscribeEvent
 	public void onWorldLoad(WorldEvent.Load event)
@@ -148,13 +142,6 @@ public class EventHandler
 				break;
 		}
 	}
-
-	@SubscribeEvent
-	public void onWorldTick(WorldTickEvent event)
-	{
-		pendingExplosions.removeIf(IIExplosion::explodeBlocks);
-	}
-
 
 	//--- Multiblocks ---//
 
