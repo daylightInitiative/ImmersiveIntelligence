@@ -59,13 +59,10 @@ public class IISounds
 	@ModSound(sounds = {"paper_falling"}, subtitle = "paper_eject")
 	public static SoundEvent paperEject = registerSound("paper_eject");
 
-	@ModSound(sounds = {"device/radio/*{0..1}"}, subtitle = "*")
-	public static SoundEvent radioNoise = registerSound("radio_noise");
-	@ModSound(sounds = {"device/radio/*"}, subtitle = "*")
-	public static SoundEvent radioBeep = registerSound("radio_beep");
-
-	@ModSound(sounds = {"device/radio/*"}, subtitle = "*")
-	public static SoundEvent debuggerBeep = registerSound("debugger_beep");
+	@ModSound(sounds = {"device/radio/*{0..1}"}, subtitle = "radio_noise")
+	public static SoundEvent radio_noise = registerSound("radio_noise");
+	@ModSound(sounds = {"device/*"}, subtitle = "radio_beep")
+	public static SoundEvent radio_beep = registerSound("radio_beep");
 
 	@ModSound(sounds = {"device/electric_motor/start"}, subtitle = "inserter")
 	public static SoundEvent inserterStart = registerSound("inserter_start");

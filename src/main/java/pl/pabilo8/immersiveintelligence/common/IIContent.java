@@ -63,6 +63,7 @@ import pl.pabilo8.immersiveintelligence.common.item.ammo.missile.ItemIIAmmoRocke
 import pl.pabilo8.immersiveintelligence.common.item.armor.*;
 import pl.pabilo8.immersiveintelligence.common.item.crafting.*;
 import pl.pabilo8.immersiveintelligence.common.item.crafting.material.*;
+import pl.pabilo8.immersiveintelligence.common.item.crafting.ItemIIMaterial;
 import pl.pabilo8.immersiveintelligence.common.item.data.ItemIIDataWireCoil;
 import pl.pabilo8.immersiveintelligence.common.item.data.ItemIIFunctionalCircuit;
 import pl.pabilo8.immersiveintelligence.common.item.data.ItemIIPunchtape;
@@ -292,7 +293,7 @@ public class IIContent
 	public static final BlockIISmallCrate blockSmallCrate = new BlockIISmallCrate();
 
 	//explosives
-	public static final BlockIIAdvancedExplosives blockAdvancedExplosives = new BlockIIAdvancedExplosives();
+	public static final BlockIIHMXDynamite blockHMXDynamite = new BlockIIHMXDynamite();
 
 	//ammunition
 	public static final BlockIIMineSign blockMineSign = new BlockIIMineSign();

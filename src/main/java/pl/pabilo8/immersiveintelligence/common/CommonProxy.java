@@ -19,7 +19,6 @@ import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWindmill;
 import blusunrize.immersiveengineering.common.items.IEItemInterfaces.IGuiItem;
 import blusunrize.immersiveengineering.common.util.IEPotions;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockTNT;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -310,6 +309,7 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 		LighterFuelHandler.addFuel(FluidRegistry.getFluid("ethanol"), 20);
 
 		MachinegunCoolantHandler.addCoolant(FluidRegistry.WATER, 1);
+		// LighterFuelHandler.addFuel(FluidRegistry.getFluid("creosote"),100);
 
 		CrusherRecipe.addRecipe(IIContent.itemMaterialDust.getStack(MaterialsDust.SILICON, 1),
 				new IngredientStack("plateSilicon"), 12000);
@@ -333,24 +333,6 @@ public class CommonProxy implements IGuiHandler, LoadingCallback
 				FluidRegistry.getFluid("diesel"),
 				FluidRegistry.getFluid("biodiesel")
 		);
-
-		IIContent.itemLighter.registerBlockAction((world, pos, igniter, state, tileEntity) ->
-		{
-			if(!(state.getBlock() instanceof BlockTNT))
-				return false;
-			((BlockTNT)state.getBlock()).explode(world, pos, state.withProperty(BlockTNT.EXPLODE, Boolean.valueOf(true)), igniter);
-			world.setBlockToAir(pos);
-			return true;
-		});
-		IIContent.itemLighter.registerBlockAction((world, pos, igniter, state, tileEntity) ->
-		{
-			if(!(state.getBlock()==IIContent.blockAdvancedExplosives))
-				return false;
-			IIContent.blockAdvancedExplosives.explode(world, pos, igniter);
-			world.setBlockToAir(pos);
-			return true;
-		});
-
 	}
 
 	//--- Main Loading Events ---//

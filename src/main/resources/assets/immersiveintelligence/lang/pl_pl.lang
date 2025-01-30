@@ -498,9 +498,9 @@ info.immersiveintelligence.tool_durability=Wytrzymałośc: %1$s / %2$s
 info.immersiveintelligence.yaw=Obrót Poziomy: %s
 
 info.immersiveintelligence.debugger_mode=Tryb Debuggera: %s
-info.immersiveintelligence.debugger_mode.transceiver=Nadajniko-Odbiornik
-info.immersiveintelligence.debugger_mode.transmitter=Nadajnik
-info.immersiveintelligence.debugger_mode.receiver=Odbiornik
+info.immersiveintelligence.debugger_mode.0=Nadajniko-Odbiornik
+info.immersiveintelligence.debugger_mode.1=Nadajnik
+info.immersiveintelligence.debugger_mode.2=Odbiornik
 
 info.immersiveintelligence.tachometer_message.basic=Wewnętrzne: prędkość %s Obr./min / moment obrotowy %s Nm.
 info.immersiveintelligence.tachometer_message.advanced=Wewnętrzne: prędkość %s Obr./min / moment obrotowy %s Nm. prędkość: speed %s Obr./min / moment obrotowy %s Nm.

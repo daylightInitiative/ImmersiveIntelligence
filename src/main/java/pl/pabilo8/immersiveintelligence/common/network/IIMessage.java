@@ -16,7 +16,6 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import pl.pabilo8.immersiveintelligence.common.util.easynbt.EasyNBT;
 
 /**
  * Easy handling for simple, no reply messages.
@@ -60,53 +59,6 @@ public abstract class IIMessage implements IMessage
 		return ByteBufUtils.readUTF8String(buf);
 	}
 
-
-	/**
-	 * @param buf buffer to read from
-	 * @return value read
-	 */
-	protected BlockPos readPos(ByteBuf buf)
-	{
-		return new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
-	}
-
-	/**
-	 * @param buf buffer to read from
-	 * @return value read
-	 */
-	protected DimensionBlockPos readDimPos(ByteBuf buf)
-	{
-		return new DimensionBlockPos(buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
-	}
-
-	/**
-	 * @param buf buffer to read from
-	 * @return value read
-	 */
-	protected Vec3d readVec3(ByteBuf buf)
-	{
-		return new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
-	}
-
-	/**
-	 * @param buf buffer to read from
-	 * @return value read
-	 */
-	protected NBTTagCompound readTagCompound(ByteBuf buf)
-	{
-		return ByteBufUtils.readTag(buf);
-	}
-
-	protected EasyNBT readEasyNBT(ByteBuf buf)
-	{
-		return EasyNBT.wrapNBT(buf);
-	}
-
-	protected <T extends Enum<T>> T readEnum(ByteBuf buf, Class<T> enumClass)
-	{
-		return enumClass.getEnumConstants()[buf.readInt()];
-	}
-
 	/**
 	 * @param buf   buffer to write to
 	 * @param value value to save
@@ -115,6 +67,15 @@ public abstract class IIMessage implements IMessage
 	protected ByteBuf writePos(ByteBuf buf, BlockPos value)
 	{
 		return buf.writeInt(value.getX()).writeInt(value.getY()).writeInt(value.getZ());
+	}
+
+	/**
+	 * @param buf buffer to read from
+	 * @return value read
+	 */
+	protected BlockPos readPos(ByteBuf buf)
+	{
+		return new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
 	}
 
 	/**
@@ -128,6 +89,15 @@ public abstract class IIMessage implements IMessage
 	}
 
 	/**
+	 * @param buf buffer to read from
+	 * @return value read
+	 */
+	protected DimensionBlockPos readDimPos(ByteBuf buf)
+	{
+		return new DimensionBlockPos(buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
+	}
+
+	/**
 	 * @param buf   buffer to write to
 	 * @param value value to save
 	 * @return buf
@@ -135,6 +105,15 @@ public abstract class IIMessage implements IMessage
 	protected ByteBuf writeVec3(ByteBuf buf, Vec3d value)
 	{
 		return buf.writeDouble(value.x).writeDouble(value.y).writeDouble(value.z);
+	}
+
+	/**
+	 * @param buf buffer to read from
+	 * @return value read
+	 */
+	protected Vec3d readVec3(ByteBuf buf)
+	{
+		return new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
 	}
 
 	/**
@@ -148,15 +127,24 @@ public abstract class IIMessage implements IMessage
 		return buf;
 	}
 
+	/**
+	 * @param buf buffer to read from
+	 * @return value read
+	 */
+	protected NBTTagCompound readTagCompound(ByteBuf buf)
+	{
+		return ByteBufUtils.readTag(buf);
+	}
+
 	protected <T extends Enum<T>> ByteBuf writeEnum(ByteBuf buf, T value)
 	{
 		buf.writeInt(value.ordinal());
 		return buf;
 	}
 
-	protected ByteBuf writeEasyNBT(ByteBuf buf, EasyNBT value)
+	protected <T extends Enum<T>> T readEnum(ByteBuf buf, Class<T> enumClass)
 	{
-		return value.writeToByteBuf(buf);
+		return enumClass.getEnumConstants()[buf.readInt()];
 	}
 
 	//--- Message Handler ---//

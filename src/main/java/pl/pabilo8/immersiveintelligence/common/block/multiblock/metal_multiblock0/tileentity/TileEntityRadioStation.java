@@ -75,9 +75,9 @@ public class TileEntityRadioStation extends TileEntityMultiblockMetal<TileEntity
 		if(!isDummy()&&world.isRemote)
 		{
 			if(getTileForPos(9)!=null)
-				ImmersiveEngineering.proxy.handleTileSound(IISounds.radioNoise, getTileForPos(9), this.soundDelay > 0, 0.125f/4f, 1);
+				ImmersiveEngineering.proxy.handleTileSound(IISounds.radio_noise, getTileForPos(9), this.soundDelay > 0, 0.125f/4f, 1);
 			if(getTileForPos(0)!=null)
-				ImmersiveEngineering.proxy.handleTileSound(IISounds.radioBeep, getTileForPos(0), this.soundDelay > 0, 0.5f/4f, sountIn?1f: 0.5f);
+				ImmersiveEngineering.proxy.handleTileSound(IISounds.radio_beep, getTileForPos(0), this.soundDelay > 0, 0.5f/4f, sountIn?1f: 0.5f);
 
 			if(soundDelay > 0)
 				soundDelay--;

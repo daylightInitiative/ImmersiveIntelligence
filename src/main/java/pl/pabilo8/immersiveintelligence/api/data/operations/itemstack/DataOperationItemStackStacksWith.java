@@ -1,6 +1,6 @@
 package pl.pabilo8.immersiveintelligence.api.data.operations.itemstack;
 
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraft.item.ItemStack;
 import pl.pabilo8.immersiveintelligence.api.data.DataPacket;
 import pl.pabilo8.immersiveintelligence.api.data.operations.DataOperation;
 import pl.pabilo8.immersiveintelligence.api.data.types.DataTypeBoolean;
@@ -26,7 +26,6 @@ public class DataOperationItemStackStacksWith extends DataOperation
 		DataTypeItemStack t1 = packet.getVarInType(DataTypeItemStack.class, data.getArgument(0));
 		DataTypeItemStack t2 = packet.getVarInType(DataTypeItemStack.class, data.getArgument(1));
 		//Yes
-
-		return new DataTypeBoolean(ItemHandlerHelper.canItemStacksStackRelaxed(t1.value, t2.value));
+		return new DataTypeBoolean(ItemStack.areItemStacksEqual(t1.value, t2.value));
 	}
 }
