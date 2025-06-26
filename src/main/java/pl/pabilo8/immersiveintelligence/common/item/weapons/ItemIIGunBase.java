@@ -201,7 +201,7 @@ public abstract class ItemIIGunBase extends ItemIIUpgradableTool implements ISki
 
 	@Override
 	public void onPlayerStoppedUsing(ItemStack stack, World world, EntityLivingBase entity, int timeLeft) {
-		if(getFireMode(stack) == FireModeType.SINGULAR) {
+		if(getFireMode(stack) == FireModeType.SINGULAR || getFireMode(stack) == FireModeType.SINGULAR_CHARGED) {
 			setHasFiredThisClick(stack, false);
 		}
 	}
@@ -318,7 +318,7 @@ public abstract class ItemIIGunBase extends ItemIIUpgradableTool implements ISki
 		if(hand==EnumHand.MAIN_HAND)
 		{
 			player.setActiveHand(hand);
-			if(getFireMode(weapon)==FireModeType.SINGULAR)
+			if(getFireMode(weapon)==FireModeType.SINGULAR || getFireMode(weapon)==FireModeType.SINGULAR_CHARGED)
 			{
 
 				if(!hasFiredThisClick(weapon)) {
