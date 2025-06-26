@@ -46,7 +46,7 @@ public class ItemIIDataWireCoil extends ItemIIBase implements IWireCoil
 		if(stack.getTagCompound()!=null&&stack.getTagCompound().hasKey("linkingPos"))
 		{
 			int[] link = stack.getTagCompound().getIntArray("linkingPos");
-			if(link!=null&&link.length > 3)
+			if(link!=null&&link.length < 3)
 			{
 				tooltip.add(I18n.format(Lib.DESC_INFO+"attachedToDim", link[1], link[2], link[3], link[0]));
 			}
